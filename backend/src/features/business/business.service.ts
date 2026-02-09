@@ -33,10 +33,44 @@ export class BusinessService {
   }
 
   /**
+   * Get all businesses (admin)
+   */
+  async getAll(): Promise<Business[]> {
+    return businessRepository.findAll();
+  }
+
+  /**
    * Get all businesses for a user
    */
   async getAllByOwner(profileId: string): Promise<Business[]> {
     return businessRepository.findByOwnerId(profileId);
+  }
+
+  /**
+   * Get a business by ID (admin - no ownership check)
+   */
+  async getByIdAdmin(id: string): Promise<Business | null> {
+    return businessRepository.findById(id);
+  }
+
+  /**
+   * Update a business (admin - no ownership check)
+   */
+  async updateAdmin(id: string, dto: UpdateBusinessDto): Promise<Business | null> {
+    // Check existence first
+    const existing = await businessRepository.findById(id);
+    if (!existing) return null;
+    return businessRepository.update(id, dto);
+  }
+
+  /**
+   * Delete a business (admin - no ownership check)
+   */
+  async deleteAdmin(id: string): Promise<boolean> {
+    // Check existence first
+    const existing = await businessRepository.findById(id);
+    if (!existing) return false;
+    return businessRepository.deleteById(id);
   }
 
   /**

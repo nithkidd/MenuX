@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { supabaseAdmin as supabase } from "../../config/supabase.js";
+import { supabase, supabaseAdmin } from "../../config/supabase.js";
 import { AuthUser } from "../types/index.js";
 
 export interface AuthRequest extends Request {
   user: AuthUser;
   profileId: string;
+  role: string;
+  requiresOwnershipCheck?: boolean;
 }
 
 export const verifyAuth = async (
@@ -25,6 +27,7 @@ export const verifyAuth = async (
 
   try {
     const token = authHeader.split(" ")[1];
+    // Use public client (anon key) to verify user JWTs
     const { data: authData, error: authError } =
       await supabase.auth.getUser(token);
 
@@ -36,26 +39,27 @@ export const verifyAuth = async (
     }
 
     const authUser = authData.user;
-    let { data: profile } = await supabase
+    // Use admin client for database operations (bypasses RLS)
+    let { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("id, auth_user_id, email, full_name, avatar_url")
+      .select("id, auth_user_id, email, full_name, avatar_url, role")
       .eq("auth_user_id", authUser.id)
       .maybeSingle();
 
     if (!profile && authUser.email) {
-      const { data: legacyProfile } = await supabase
+      const { data: legacyProfile } = await supabaseAdmin
         .from("profiles")
-        .select("id, auth_user_id, email, full_name, avatar_url")
+        .select("id, auth_user_id, email, full_name, avatar_url, role")
         .eq("email", authUser.email)
         .is("auth_user_id", null)
         .maybeSingle();
 
       if (legacyProfile) {
-        const { data: updatedProfile } = await supabase
+        const { data: updatedProfile } = await supabaseAdmin
           .from("profiles")
           .update({ auth_user_id: authUser.id })
           .eq("id", legacyProfile.id)
-          .select("id, auth_user_id, email, full_name, avatar_url")
+          .select("id, auth_user_id, email, full_name, avatar_url, role")
           .single();
 
         profile = updatedProfile;
@@ -63,7 +67,7 @@ export const verifyAuth = async (
     }
 
     if (!profile) {
-      const { data: createdProfile, error: createError } = await supabase
+      const { data: createdProfile, error: createError } = await supabaseAdmin
         .from("profiles")
         .insert({
           auth_user_id: authUser.id,
@@ -71,7 +75,7 @@ export const verifyAuth = async (
           full_name: authUser.user_metadata?.full_name || null,
           avatar_url: authUser.user_metadata?.avatar_url || null,
         })
-        .select("id, auth_user_id, email, full_name, avatar_url")
+        .select("id, auth_user_id, email, full_name, avatar_url, role")
         .single();
 
       if (createError || !createdProfile) {
@@ -93,6 +97,7 @@ export const verifyAuth = async (
 
     (req as AuthRequest).user = user;
     (req as AuthRequest).profileId = profile.id;
+    (req as AuthRequest).role = profile.role || "user";
     next();
   } catch (err) {
     return res

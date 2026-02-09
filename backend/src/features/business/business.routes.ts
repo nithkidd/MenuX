@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { businessController } from './business.controller.js';
 import { AuthRequest } from '../../shared/middleware/auth.middleware.js';
+import { can } from '../../shared/middleware/rbac.middleware.js';
 
 const router = Router();
 
@@ -40,7 +41,7 @@ const router = Router();
  *       201:
  *         description: Business created successfully
  */
-router.post('/', (req: Request, res: Response) => 
+router.post('/', can('create', 'business'), (req: Request, res: Response) => 
   businessController.create(req as unknown as AuthRequest, res)
 );
 
@@ -83,10 +84,10 @@ router.get('/', (req: Request, res: Response) =>
 router.get('/:id', (req: Request, res: Response) => 
   businessController.getById(req as unknown as AuthRequest, res)
 );
-router.put('/:id', (req: Request, res: Response) => 
+router.put('/:id', can('update', 'business'), (req: Request, res: Response) => 
   businessController.update(req as unknown as AuthRequest, res)
 );
-router.delete('/:id', (req: Request, res: Response) => 
+router.delete('/:id', can('delete', 'business'), (req: Request, res: Response) => 
   businessController.delete(req as unknown as AuthRequest, res)
 );
 

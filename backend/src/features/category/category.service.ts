@@ -85,6 +85,52 @@ export class CategoryService {
 
     return true;
   }
+  /**
+   * Create a new category (admin)
+   */
+  async createAdmin(businessId: string, dto: CreateCategoryDto): Promise<Category | null> {
+    const maxOrder = await categoryRepository.getMaxSortOrder(businessId);
+
+    return categoryRepository.create({
+      business_id: businessId,
+      name: dto.name,
+      sort_order: maxOrder + 1,
+    });
+  }
+
+  /**
+   * Get all categories for a business (admin)
+   */
+  async getAllByBusinessAdmin(businessId: string): Promise<Category[]> {
+    return categoryRepository.findByBusinessId(businessId);
+  }
+
+  /**
+   * Update a category (admin)
+   */
+  async updateAdmin(id: string, dto: UpdateCategoryDto): Promise<Category | null> {
+    return categoryRepository.update(id, dto);
+  }
+
+  /**
+   * Delete a category (admin)
+   */
+  async deleteAdmin(id: string): Promise<boolean> {
+    return categoryRepository.delete(id);
+  }
+
+  /**
+   * Reorder categories (admin)
+   */
+  async reorderAdmin(items: ReorderDto[]): Promise<boolean> {
+    if (items.length === 0) return false;
+
+    // Update sort orders directly
+    for (const item of items) {
+      await categoryRepository.updateSortOrder(item.id, item.sort_order);
+    }
+    return true;
+  }
 }
 
 export const categoryService = new CategoryService();

@@ -11,7 +11,13 @@ export class CategoryController {
     try {
       const businessId = req.params.businessId as string;
       const dto = req.body as CreateCategoryDto;
-      const category = await categoryService.create(businessId, req.profileId, dto);
+      let category: Category | null;
+
+      if (req.requiresOwnershipCheck) {
+        category = await categoryService.create(businessId, req.profileId, dto);
+      } else {
+        category = await categoryService.createAdmin(businessId, dto);
+      }
 
       if (!category) {
         res.status(403).json({
@@ -41,7 +47,13 @@ export class CategoryController {
   async getAll(req: AuthRequest, res: Response): Promise<void> {
     try {
       const businessId = req.params.businessId as string;
-      const categories = await categoryService.getAllByBusiness(businessId, req.profileId);
+      let categories: Category[] | null;
+
+      if (req.requiresOwnershipCheck) {
+        categories = await categoryService.getAllByBusiness(businessId, req.profileId);
+      } else {
+        categories = await categoryService.getAllByBusinessAdmin(businessId);
+      }
 
       if (categories === null) {
         res.status(403).json({
@@ -71,7 +83,13 @@ export class CategoryController {
     try {
       const id = req.params.id as string;
       const dto = req.body as UpdateCategoryDto;
-      const category = await categoryService.update(id, req.profileId, dto);
+      let category: Category | null;
+
+      if (req.requiresOwnershipCheck) {
+        category = await categoryService.update(id, req.profileId, dto);
+      } else {
+        category = await categoryService.updateAdmin(id, dto);
+      }
 
       if (!category) {
         res.status(404).json({
@@ -101,7 +119,13 @@ export class CategoryController {
   async delete(req: AuthRequest, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const deleted = await categoryService.delete(id, req.profileId);
+      let deleted: boolean;
+
+      if (req.requiresOwnershipCheck) {
+        deleted = await categoryService.delete(id, req.profileId);
+      } else {
+        deleted = await categoryService.deleteAdmin(id);
+      }
 
       if (!deleted) {
         res.status(404).json({
@@ -130,7 +154,13 @@ export class CategoryController {
   async reorder(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { items } = req.body as { items: ReorderDto[] };
-      const success = await categoryService.reorder(items, req.profileId);
+      let success: boolean;
+
+      if (req.requiresOwnershipCheck) {
+        success = await categoryService.reorder(items, req.profileId);
+      } else {
+        success = await categoryService.reorderAdmin(items);
+      }
 
       if (!success) {
         res.status(400).json({

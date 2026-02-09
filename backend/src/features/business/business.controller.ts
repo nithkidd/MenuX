@@ -27,11 +27,19 @@ export class BusinessController {
   }
 
   /**
-   * GET /business - Get all businesses for the user
+   * GET /business - Get all businesses
+   * If user has global read permission, returns all.
+   * If user has own restricted permission, returns owned.
    */
   async getAll(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const businesses = await businessService.getAllByOwner(req.profileId);
+      let businesses: Business[];
+      
+      if (req.requiresOwnershipCheck) {
+        businesses = await businessService.getAllByOwner(req.profileId);
+      } else {
+        businesses = await businessService.getAll();
+      }
 
       res.json({
         success: true,
@@ -52,7 +60,13 @@ export class BusinessController {
   async getById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const business = await businessService.getById(id, req.profileId);
+      let business: Business | null;
+
+      if (req.requiresOwnershipCheck) {
+        business = await businessService.getById(id, req.profileId);
+      } else {
+        business = await businessService.getByIdAdmin(id);
+      }
 
       if (!business) {
         res.status(404).json({
@@ -82,7 +96,13 @@ export class BusinessController {
     try {
       const id = req.params.id as string;
       const dto = req.body as UpdateBusinessDto;
-      const business = await businessService.update(id, req.profileId, dto);
+      let business: Business | null;
+
+      if (req.requiresOwnershipCheck) {
+        business = await businessService.update(id, req.profileId, dto);
+      } else {
+        business = await businessService.updateAdmin(id, dto);
+      }
 
       if (!business) {
         res.status(404).json({
@@ -112,7 +132,13 @@ export class BusinessController {
   async delete(req: AuthRequest, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const deleted = await businessService.delete(id, req.profileId);
+      let deleted: boolean;
+
+      if (req.requiresOwnershipCheck) {
+        deleted = await businessService.delete(id, req.profileId);
+      } else {
+        deleted = await businessService.deleteAdmin(id);
+      }
 
       if (!deleted) {
         res.status(404).json({

@@ -38,6 +38,16 @@ export class BusinessRepository {
     return (data || []) as Business[];
   }
 
+  async findAll(): Promise<Business[]> {
+    const { data, error } = await supabaseAdmin
+      .from(this.table)
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Business[];
+  }
+
   async findById(id: string): Promise<Business | null> {
     const { data, error } = await supabaseAdmin
       .from(this.table)
@@ -94,6 +104,16 @@ export class BusinessRepository {
       .delete()
       .eq('id', id)
       .eq('owner_id', ownerId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
+  async deleteById(id: string): Promise<boolean> {
+    const { error } = await supabaseAdmin
+      .from(this.table)
+      .delete()
+      .eq('id', id);
 
     if (error) throw new Error(error.message);
     return true;

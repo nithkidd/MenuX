@@ -11,7 +11,13 @@ export class ItemController {
     try {
       const categoryId = req.params.categoryId as string;
       const dto = req.body as CreateItemDto;
-      const item = await itemService.create(categoryId, req.profileId, dto);
+      let item: Item | null;
+
+      if (req.requiresOwnershipCheck) {
+        item = await itemService.create(categoryId, req.profileId, dto);
+      } else {
+        item = await itemService.createAdmin(categoryId, dto);
+      }
 
       if (!item) {
         res.status(403).json({
@@ -41,7 +47,13 @@ export class ItemController {
   async getAll(req: AuthRequest, res: Response): Promise<void> {
     try {
       const categoryId = req.params.categoryId as string;
-      const items = await itemService.getAllByCategory(categoryId, req.profileId);
+      let items: Item[] | null;
+
+      if (req.requiresOwnershipCheck) {
+        items = await itemService.getAllByCategory(categoryId, req.profileId);
+      } else {
+        items = await itemService.getAllByCategoryAdmin(categoryId);
+      }
 
       if (items === null) {
         res.status(403).json({
@@ -71,7 +83,13 @@ export class ItemController {
     try {
       const id = req.params.id as string;
       const dto = req.body as UpdateItemDto;
-      const item = await itemService.update(id, req.profileId, dto);
+      let item: Item | null;
+
+      if (req.requiresOwnershipCheck) {
+        item = await itemService.update(id, req.profileId, dto);
+      } else {
+        item = await itemService.updateAdmin(id, dto);
+      }
 
       if (!item) {
         res.status(404).json({
@@ -101,7 +119,13 @@ export class ItemController {
   async delete(req: AuthRequest, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const deleted = await itemService.delete(id, req.profileId);
+      let deleted: boolean;
+
+      if (req.requiresOwnershipCheck) {
+        deleted = await itemService.delete(id, req.profileId);
+      } else {
+        deleted = await itemService.deleteAdmin(id);
+      }
 
       if (!deleted) {
         res.status(404).json({
@@ -130,7 +154,13 @@ export class ItemController {
   async reorder(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { items } = req.body as { items: ReorderDto[] };
-      const success = await itemService.reorder(items, req.profileId);
+      let success: boolean;
+
+      if (req.requiresOwnershipCheck) {
+        success = await itemService.reorder(items, req.profileId);
+      } else {
+        success = await itemService.reorderAdmin(items);
+      }
 
       if (!success) {
         res.status(400).json({

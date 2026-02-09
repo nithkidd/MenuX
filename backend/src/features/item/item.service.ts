@@ -92,6 +92,55 @@ export class ItemService {
 
     return true;
   }
+  /**
+   * Create a new item (admin)
+   */
+  async createAdmin(categoryId: string, dto: CreateItemDto): Promise<Item | null> {
+    const maxOrder = await itemRepository.getMaxSortOrder(categoryId);
+
+    return itemRepository.create({
+      category_id: categoryId,
+      name: dto.name,
+      description: dto.description,
+      price: dto.price,
+      image_url: dto.image_url,
+      sort_order: maxOrder + 1,
+    });
+  }
+
+  /**
+   * Update an item (admin)
+   */
+  async updateAdmin(id: string, dto: UpdateItemDto): Promise<Item | null> {
+    return itemRepository.update(id, dto);
+  }
+
+  /**
+   * Delete an item (admin)
+   */
+  async deleteAdmin(id: string): Promise<boolean> {
+    return itemRepository.delete(id);
+  }
+
+  /**
+   * Reorder items (admin)
+   */
+  async reorderAdmin(items: ReorderDto[]): Promise<boolean> {
+    if (items.length === 0) return false;
+
+    // Update sort orders directly
+    for (const item of items) {
+      await itemRepository.updateSortOrder(item.id, item.sort_order);
+    }
+    return true;
+  }
+
+  /**
+   * Get all items for a category (admin)
+   */
+  async getAllByCategoryAdmin(categoryId: string): Promise<Item[]> {
+    return itemRepository.findByCategoryId(categoryId);
+  }
 }
 
 export const itemService = new ItemService();
