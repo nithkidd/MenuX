@@ -43,4 +43,53 @@ const router = Router();
  */
 router.get("/me", verifyAuth, authController.getMe);
 
+/**
+ * @swagger
+ * /auth/me:
+ *   put:
+ *     summary: Update current user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               full_name:
+ *                 type: string
+ *               avatar_url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ */
+router.put("/me", verifyAuth, authController.updateProfile);
+
+/**
+ * @swagger
+ * /auth/unlink:
+ *   post:
+ *     summary: Unlink a provider (identity)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               provider:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Provider unlinked successfully
+ */
+router.post("/unlink", verifyAuth, authController.unlinkProvider);
+
+
 export default router;

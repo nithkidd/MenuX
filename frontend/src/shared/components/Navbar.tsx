@@ -46,6 +46,15 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
+            {user && (
+              <Link
+                to="/dashboard"
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-stone-900 dark:bg-orange-600 text-white dark:text-white font-bold text-sm hover:bg-stone-800 dark:hover:bg-orange-700 transition-all shadow-sm hover:shadow-md active:scale-95"
+              >
+                <LayoutDashboard size={18} strokeWidth={2.5} />
+                <span>Dashboard</span>
+              </Link>
+            )}
             <ThemeToggle />
             {user ? (
               <div className="relative" ref={dropdownRef}>
@@ -53,8 +62,12 @@ export default function Navbar() {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center space-x-2 focus:outline-none btn-press relative"
                   >
-                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold border border-orange-200">
-                        {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
+                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold border border-orange-200 overflow-hidden">
+                        {user.avatar_url ? (
+                            <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                        ) : (
+                            user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()
+                        )}
                     </div>
                     {user.role === 'admin' && (
                       <div className="absolute -bottom-1 -right-1 bg-stone-900 dark:bg-white text-white dark:text-stone-900 p-0.5 rounded-full border-2 border-white dark:border-stone-900 shadow-sm" title="Administrator">
@@ -71,10 +84,17 @@ export default function Navbar() {
                         </div>
                         <Link
                             to="/dashboard"
-                            className="block px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-orange-500 transition-colors"
+                            className="block md:hidden w-full text-left px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors border-b border-stone-100 dark:border-stone-800"
                             onClick={() => setIsDropdownOpen(false)}
                         >
                             Dashboard
+                        </Link>
+                        <Link
+                            to="/settings"
+                            className="block w-full text-left px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                            onClick={() => setIsDropdownOpen(false)}
+                        >
+                            Settings
                         </Link>
                         <button
                             onClick={() => {

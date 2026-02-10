@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { publicMenuService, type PublicMenuData } from '../services/public-menu.service';
 import { MenuTemplateSelector } from '../components/MenuTemplateSelector';
-import { Search } from 'lucide-react'; 
+import { Search, X } from 'lucide-react'; 
 
 export default function PublicMenu() {
   const { slug } = useParams<{ slug: string }>();
@@ -10,10 +10,50 @@ export default function PublicMenu() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  
+  // Ref to track if we are currently scrolling automatically (clicking a tab)
+  const isScrollingRef = useRef(false);
 
   useEffect(() => {
     if (slug) loadMenu();
   }, [slug]);
+
+  // Scrollspy Effect
+  useEffect(() => {
+    const handleScroll = () => {
+        if (isScrollingRef.current) return;
+
+        const categories = document.querySelectorAll('[id^="category-"]');
+        const headerOffset = 180; // Adjust based on header height + padding
+
+        let currentActive = 'all';
+        
+        // If at very top, 'all' is usually safe default or first category
+        if (window.scrollY < 100) {
+            setActiveCategory('all');
+            return;
+        }
+
+        // Find the category currently in view
+        categories.forEach((cat) => {
+            const rect = cat.getBoundingClientRect();
+            // Check if top of section is near the header offset
+            // We consider it active if its top is near the header, or if we're inside it
+            if (rect.top <= headerOffset + 50 && rect.bottom >= headerOffset) {
+                currentActive = cat.id.replace('category-', '');
+            }
+        });
+
+        if (currentActive !== activeCategory) {
+            setActiveCategory(currentActive);
+        }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeCategory]);
 
   const loadMenu = async () => {
     if (!slug) return;
@@ -29,8 +69,51 @@ export default function PublicMenu() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+    <div className="light min-h-screen bg-white pb-20">
+        {/* Skeleton Header */}
+        <div className="sticky top-0 z-40 bg-white border-b border-gray-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+                        <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+                    </div>
+                </div>
+                <div className="py-2 overflow-hidden">
+                    <div className="flex gap-2">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="h-9 w-24 bg-gray-100 rounded-xl animate-pulse" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Skeleton Hero */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="rounded-2xl bg-gray-200 h-48 sm:h-64 animate-pulse" />
+        </div>
+
+        {/* Skeleton Categories & Items */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            {[1, 2].map(cat => (
+                <div key={cat} className="space-y-6">
+                     <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3, 4].map(item => (
+                            <div key={item} className="h-32 rounded-2xl border border-gray-100 bg-white p-4 flex gap-4">
+                                <div className="flex-1 space-y-3">
+                                    <div className="h-5 w-3/4 bg-gray-200 rounded animate-pulse" />
+                                    <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
+                                    <div className="h-4 w-1/2 bg-gray-100 rounded animate-pulse" />
+                                </div>
+                                <div className="w-24 h-24 rounded-xl bg-gray-200 animate-pulse flex-shrink-0" />
+                            </div>
+                        ))}
+                     </div>
+                </div>
+            ))}
+        </div>
     </div>
   );
   
@@ -45,9 +128,12 @@ export default function PublicMenu() {
   const nonEmptyCategories = categories.filter(c => c.items && c.items.length > 0);
 
   const scrollToCategory = (catId: string) => {
+    isScrollingRef.current = true;
     setActiveCategory(catId);
+    
     if (catId === 'all') {
          window.scrollTo({ top: 0, behavior: 'smooth' });
+         setTimeout(() => { isScrollingRef.current = false; }, 800);
          return;
     }
     const el = document.getElementById(`category-${catId}`);
@@ -55,6 +141,9 @@ export default function PublicMenu() {
         // Offset for sticky header
         const y = el.getBoundingClientRect().top + window.scrollY - 180;
         window.scrollTo({ top: y, behavior: 'smooth' });
+        setTimeout(() => { isScrollingRef.current = false; }, 800);
+    } else {
+        isScrollingRef.current = false;
     }
   };
 
@@ -67,36 +156,66 @@ export default function PublicMenu() {
   return (
     <div className="light min-h-screen bg-white pb-20 text-stone-900">
       {/* Top Navigation / Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 transition-all duration-300 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-                <div className="flex items-center gap-3">
-                    {/* Logo */}
-                    {business.logo_url ? (
-                        <img src={business.logo_url} alt={business.name} className="h-10 w-10 rounded-full object-cover shadow-sm" />
-                    ) : (
-                         <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xl">
-                            {business.name.charAt(0)}
-                         </div>
-                    )}
-                    <h1 className="text-xl font-bold text-gray-900 truncate max-w-[200px] sm:max-w-md">{business.name}</h1>
-                </div>
+            <div className="h-16 flex items-center justify-between gap-4">
+                {/* Search Mode */}
+                {isSearchOpen ? (
+                    <div className="flex-1 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <Search size={18} className="text-gray-400 flex-shrink-0" />
+                        <input 
+                            autoFocus
+                            type="text" 
+                            placeholder="Search menu items..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="flex-1 bg-transparent border-none text-gray-900 text-lg placeholder-gray-400 focus:ring-0 outline-none h-full"
+                        />
+                        <button 
+                            onClick={() => {
+                                setIsSearchOpen(false);
+                                setSearchQuery('');
+                            }}
+                            className="p-2 -mr-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
+                ) : (
+                    /* Default Mode */
+                    <>
+                        <div className="flex items-center gap-3 overflow-hidden flex-1">
+                            {/* Logo */}
+                            {business.logo_url ? (
+                                <img src={business.logo_url} alt={business.name} className="h-10 w-10 rounded-full object-cover shadow-sm flex-shrink-0" />
+                            ) : (
+                                <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xl flex-shrink-0">
+                                    {business.name.charAt(0)}
+                                </div>
+                            )}
+                            <h1 className="text-xl font-bold text-gray-900 truncate">{business.name}</h1>
+                        </div>
 
-                {/* Right Actions (Mock) */}
-                <div className="flex items-center gap-4 text-gray-400">
-                     <Search size={20} className="hover:text-gray-600 cursor-pointer" />
-                </div>
+                        {/* Search Icon */}
+                        <button 
+                            onClick={() => setIsSearchOpen(true)}
+                            className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-full transition-all"
+                        >
+                            <Search size={22} strokeWidth={2} />
+                        </button>
+                    </>
+                )}
             </div>
             
-            {/* Category Navigation (Scrollable) */}
-            <div className="py-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Category Navigation (Scrollable & Sticky) */}
+            <div className="py-3 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                 <div className="flex gap-2 min-w-max">
                     <button 
                         onClick={() => scrollToCategory('all')}
-                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                             activeCategory === 'all' 
-                            ? 'bg-stone-900 text-white' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-stone-900 text-white shadow-md transform scale-105' 
+                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                         }`}
                     >
                         All Menu
@@ -105,10 +224,10 @@ export default function PublicMenu() {
                         <button 
                             key={cat.id}
                             onClick={() => scrollToCategory(cat.id)}
-                            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                                 activeCategory === cat.id 
-                                ? 'bg-stone-900 text-white' 
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-stone-900 text-white shadow-md transform scale-105' 
+                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                             }`}
                         >
                             {cat.name}
@@ -137,7 +256,20 @@ export default function PublicMenu() {
       </div>
 
       {/* Dynamic Menu Template */}
-      <MenuTemplateSelector data={data} />
+      <MenuTemplateSelector 
+        data={{
+            business: data.business,
+            categories: data.categories.map(cat => ({
+                ...cat,
+                items: cat.items?.filter(item => {
+                    if (!searchQuery) return true;
+                    // Simple case-insensitive search
+                    return item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+                })
+            })).filter(cat => cat.items && cat.items.length > 0)
+        }} 
+      />
       
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 mt-12 py-12">

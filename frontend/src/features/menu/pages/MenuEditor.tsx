@@ -1,10 +1,9 @@
 
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { menuService, type Category, type Item } from '../services/menu.service';
 import { foodTypeService } from '../services/food-type.service';
-import { businessService, type Business } from '../../business/services/business.service';
-import { Plus, ExternalLink, PlayCircle, ChevronRight, ArrowLeft } from 'lucide-react'; 
+import { Plus } from 'lucide-react'; 
 import PageTransition from '../../../shared/components/PageTransition'; 
 import ItemModal from '../components/ItemModal';
 import CategoryModal from '../components/CategoryModal';
@@ -25,12 +24,14 @@ import {
   verticalListSortingStrategy 
 } from '@dnd-kit/sortable';
 import { SortableCategory } from '../components/SortableCategory';
+import { SortableItem } from '../components/SortableItem';
 
 export default function MenuEditor() {
   const { businessId } = useParams<{ businessId: string }>();
-  const [business, setBusiness] = useState<Business | null>(null);
+  // const [business, setBusiness] = useState<Business | null>(null); // Removed unused business state
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,6 +39,14 @@ export default function MenuEditor() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [targetCategoryId, setTargetCategoryId] = useState<string | null>(null);
+
+  type NotificationType = 'success' | 'error';
+  interface Notification {
+    id: number;
+    type: NotificationType;
+    message: string;
+  }
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -49,19 +58,9 @@ export default function MenuEditor() {
   useEffect(() => {
     if (businessId) {
       loadMenu();
-      loadBusiness();
+      // loadBusiness(); // Removed
     }
   }, [businessId]);
-
-  const loadBusiness = async () => {
-    if (!businessId) return;
-    try {
-      const data = await businessService.getById(businessId);
-      setBusiness(data);
-    } catch (error) {
-      console.error('Failed to load business', error);
-    }
-  };
 
   const loadMenu = async () => {
     if (!businessId) return;
@@ -69,11 +68,26 @@ export default function MenuEditor() {
       setLoading(true);
       const data = await menuService.getCategories(businessId);
       setCategories(data);
+      setSelectedCategoryId(prev =>
+        prev && data.some(cat => cat.id === prev)
+          ? prev
+          : data.length > 0
+          ? data[0].id
+          : null
+      );
     } catch (error) {
       console.error('Failed to load menu', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const showNotification = (message: string, type: NotificationType = 'success') => {
+    const id = Date.now() + Math.random();
+    setNotifications(prev => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 4000);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -163,13 +177,16 @@ export default function MenuEditor() {
     try {
       if (editingCategory) {
         await menuService.updateCategory(editingCategory.id, name);
+        showNotification('Category updated', 'success');
       } else {
         await menuService.createCategory(businessId, name);
+        showNotification('Category created', 'success');
       }
       setIsCategoryModalOpen(false);
       loadMenu();
     } catch (error) {
-      alert('Failed to save category');
+      console.error('Failed to save category', error);
+      showNotification('Failed to save category', 'error');
     }
   };
 
@@ -179,7 +196,8 @@ export default function MenuEditor() {
       await menuService.deleteCategory(id);
       loadMenu();
     } catch (error) {
-      alert('Failed to delete category');
+      console.error('Failed to delete category', error);
+      showNotification('Failed to delete category', 'error');
     }
   };
 
@@ -219,7 +237,7 @@ export default function MenuEditor() {
         loadMenu();
     } catch (error) {
         console.error("Failed to save item", error);
-        alert('Failed to save item');
+        showNotification('Failed to save item', 'error');
     }
   };
 
@@ -229,101 +247,214 @@ export default function MenuEditor() {
        await menuService.deleteItem(id);
        loadMenu();
      } catch (error) {
-       alert('Failed to delete item');
+       console.error('Failed to delete item', error);
+       showNotification('Failed to delete item', 'error');
      }
   };
 
-  if (loading) return <div className="p-8 text-center bg-gray-50 min-h-screen">Loading menu...</div>;
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+             {/* Sidebar Skeleton */}
+             <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+                <div className="flex items-center justify-between px-1">
+                    <div className="h-4 w-24 bg-stone-200 dark:bg-stone-800 rounded animate-pulse" />
+                    <div className="h-8 w-8 bg-stone-200 dark:bg-stone-800 rounded-lg animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className="h-12 w-full bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 animate-pulse" />
+                    ))}
+                </div>
+             </div>
+
+             {/* Main Content Skeleton */}
+             <div className="flex-1 w-full min-h-[500px] bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-stone-100 dark:border-stone-800">
+                    <div>
+                        <div className="h-8 w-48 bg-stone-200 dark:bg-stone-800 rounded animate-pulse mb-2" />
+                        <div className="h-4 w-64 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" />
+                    </div>
+                    <div className="h-10 w-32 bg-stone-200 dark:bg-stone-800 rounded-xl animate-pulse" />
+                </div>
+                <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="h-24 w-full bg-stone-50 dark:bg-stone-800/50 rounded-2xl animate-pulse" />
+                    ))}
+                </div>
+             </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <PageTransition className="pb-20">
-      <div className="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-sm text-stone-500 mb-6">
-                <Link to="/dashboard" className="hover:text-orange-600 transition-colors">Dashboard</Link>
-                <ChevronRight size={14} />
-                <span className="font-medium text-stone-900 dark:text-white">{business?.name || 'Loading...'}</span>
-                <ChevronRight size={14} />
-                <span className="font-medium text-orange-600">Menu</span>
-            </div>
+      {/* Header */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <div className="fixed right-4 top-24 z-50 space-y-3 pointer-events-none">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`rounded-xl px-4 py-3 shadow-md text-sm font-medium animate-fade-in-up pointer-events-auto ${
+                  notification.type === 'error'
+                    ? 'bg-red-50 text-red-800 dark:bg-red-900/40 dark:text-red-100 border border-red-200 dark:border-red-800'
+                    : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100 border border-emerald-200 dark:border-emerald-800'
+                }`}
+              >
+                {notification.message}
+              </div>
+            ))}
+          </div>
+        )}
 
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <Link 
-                        to="/dashboard" 
-                        className="p-2 rounded-xl text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800 transition-colors"
-                    >
-                        <ArrowLeft size={24} />
-                    </Link>
-                    <h1 className="text-2xl font-bold text-stone-900 dark:text-white tracking-tight">Menu Editor</h1>
-                </div>
-                {business && (
-                <a 
-                    href={`/menu/${business.slug}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold rounded-xl hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-stone-900 dark:hover:text-white transition-all border border-stone-200 dark:border-stone-700 shadow-sm btn-press"
-                >
-                    <PlayCircle size={18} className="mr-2 text-orange-600 dark:text-orange-500" />
-                    <span>Live Preview</span>
-                    <ExternalLink size={14} className="ml-2 text-stone-400" />
-                </a>
-                )}
-            </div>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Actions Bar */}
-        <div className="flex justify-end mb-8">
-            <button
-                onClick={() => {
-                    setEditingCategory(null);
-                    setIsCategoryModalOpen(true);
-                }}
-                className="inline-flex items-center rounded-xl border border-transparent bg-stone-900 dark:bg-orange-600 px-6 py-3 text-base font-bold text-white shadow-lg hover:bg-stone-800 dark:hover:bg-orange-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all btn-press"
-            >
-                <Plus size={20} className="mr-2"/> Add Category
-            </button>
-        </div>
-
-        {/* Draggable Categories List */}
-        <DndContext 
-            sensors={sensors} 
-            collisionDetection={closestCenter} 
+        {/* Main Editor Layout */}
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
         >
-            <SortableContext 
-                items={categories.map(cat => cat.id)} 
-                strategy={verticalListSortingStrategy}
-            >
-                <div className="space-y-6">
-                    {categories.map(category => (
-                        <SortableCategory
-                            key={category.id}
-                            category={category}
-                            items={category.items || []}
-                            onDeleteCategory={handleDeleteCategory}
-                            onEditItem={openEditModal}
-                            onDeleteItem={handleDeleteItem}
-                            onAddItem={openCreateModal}
-                            onEditCategory={(cat) => {
-                                setEditingCategory(cat);
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+                
+                {/* Sidebar (Categories) */}
+                <div className="w-full lg:w-80 flex-shrink-0 lg:sticky lg:top-36 space-y-4">
+                    <div className="flex items-center justify-between px-1">
+                        <h2 className="text-sm font-bold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                            Categories
+                        </h2>
+                        <button
+                            onClick={() => {
+                                setEditingCategory(null);
                                 setIsCategoryModalOpen(true);
                             }}
-                        />
-                    ))}
+                            className="p-1.5 rounded-lg text-stone-500 hover:text-orange-600 hover:bg-orange-50 dark:text-stone-400 dark:hover:text-orange-400 dark:hover:bg-orange-900/20 transition-colors"
+                        >
+                            <Plus size={20} />
+                        </button>
+                    </div>
+
+                    {categories.length === 0 ? (
+                         <div className="text-center py-8 px-4 text-stone-500 dark:text-stone-400 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 border-dashed">
+                            <p className="text-sm">No categories.</p>
+                            <button
+                                onClick={() => {
+                                    setEditingCategory(null);
+                                    setIsCategoryModalOpen(true);
+                                }}
+                                className="mt-2 text-sm font-bold text-orange-600 hover:underline"
+                            >
+                                Create one
+                            </button>
+                        </div>
+                    ) : (
+                        <SortableContext
+                            items={categories.map((cat) => cat.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="space-y-2">
+                                {categories.map((category) => (
+                                    <SortableCategory
+                                        key={category.id}
+                                        category={category}
+                                        itemCount={category.items?.length ?? 0}
+                                        isSelected={selectedCategoryId === category.id}
+                                        onSelect={(id) => setSelectedCategoryId(id)}
+                                        onDeleteCategory={handleDeleteCategory}
+                                        onEditCategory={(cat) => {
+                                            setEditingCategory(cat);
+                                            setIsCategoryModalOpen(true);
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </SortableContext>
+                    )}
                 </div>
-            </SortableContext>
-        </DndContext>
-            
-        {categories.length === 0 && (
-            <div className="text-center py-12 text-stone-500 dark:text-stone-400 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 border-dashed">
-                No categories yet. Click "Add Category" to get started.
+
+                {/* Main Content (Items) */}
+                <div className="flex-1 w-full min-h-[500px] bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
+                {(() => {
+                    const selectedCategory =
+                    categories.find((cat) => cat.id === selectedCategoryId) || categories[0];
+
+                    if (!selectedCategory) {
+                        return (
+                            <div className="h-full flex flex-col items-center justify-center text-center p-8 text-stone-400 dark:text-stone-500">
+                                <div className="p-4 bg-stone-50 dark:bg-stone-800 rounded-full mb-4">
+                                    <Plus size={32} />
+                                </div>
+                                <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-2">Start Building Your Menu</h3>
+                                <p className="max-w-xs mx-auto">Create a category on the left to get started, or select one to add items.</p>
+                            </div>
+                        );
+                    }
+
+                    return (
+                    <>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-stone-100 dark:border-stone-800">
+                            <div>
+                                <h2 className="text-2xl font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                                    {selectedCategory.name}
+                                    <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400">
+                                        {selectedCategory.items?.length ?? 0}
+                                    </span>
+                                </h2>
+                                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+                                    Manage items for this category.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => openCreateModal(selectedCategory.id)}
+                                className="inline-flex items-center justify-center rounded-xl border border-transparent bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-orange-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all btn-press ml-auto sm:ml-0"
+                            >
+                                <Plus size={18} className="mr-2" />
+                                Add Item
+                            </button>
+                        </div>
+
+                        {selectedCategory.items && selectedCategory.items.length > 0 ? (
+                        <SortableContext
+                            items={selectedCategory.items.map((item) => item.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="space-y-0 divide-y divide-stone-100 dark:divide-stone-800">
+                                {selectedCategory.items.map((item) => (
+                                    <SortableItem
+                                        key={item.id}
+                                        item={item}
+                                        onEdit={openEditModal}
+                                        onDelete={handleDeleteItem}
+                                    />
+                                ))}
+                            </div>
+                        </SortableContext>
+                        ) : (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="w-16 h-16 bg-stone-50 dark:bg-stone-800 rounded-2xl flex items-center justify-center mb-4 text-stone-300 dark:text-stone-600">
+                                <Plus size={32} />
+                            </div>
+                            <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">No Items Yet</h3>
+                            <p className="text-stone-500 dark:text-stone-400 max-w-sm mb-6">
+                                This category is empty. Add your first item to start displaying delicious food to your customers.
+                            </p>
+                            <button
+                                onClick={() => openCreateModal(selectedCategory.id)}
+                                className="text-orange-600 font-bold hover:underline"
+                            >
+                                Add item to {selectedCategory.name}
+                            </button>
+                        </div>
+                        )}
+                    </>
+                    );
+                })()}
+                </div>
             </div>
-        )}
+        </DndContext>
 
         {/* Modal */}
         {businessId && (

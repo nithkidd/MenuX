@@ -10,6 +10,9 @@ import CreateBusiness from "./features/business/pages/CreateBusiness";
 import MenuEditor from "./features/menu/pages/MenuEditor";
 import PublicMenu from "./features/menu/pages/PublicMenu";
 import BusinessSettings from "./features/business/pages/BusinessSettings";
+import UserSettings from "./features/auth/pages/UserSettings";
+import BusinessLayout from "./features/business/components/BusinessLayout";
+import BusinessOverview from "./features/business/pages/BusinessOverview";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -102,8 +105,33 @@ function AppRoutes() {
     <ErrorBoundary>
       <Suspense
         fallback={
-          <div className="flex h-screen items-center justify-center">
-            Loading...
+          <div className="min-h-screen bg-white">
+            <div className="border-b border-stone-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 bg-stone-200 rounded-lg animate-pulse" />
+                        <div className="h-6 w-24 bg-stone-200 rounded animate-pulse" />
+                    </div>
+                    <div className="hidden md:flex items-center gap-8">
+                        <div className="h-4 w-16 bg-stone-200 rounded animate-pulse" />
+                        <div className="h-4 w-16 bg-stone-200 rounded animate-pulse" />
+                        <div className="h-4 w-16 bg-stone-200 rounded animate-pulse" />
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="h-10 w-24 bg-stone-200 rounded-xl animate-pulse" />
+                        <div className="h-10 w-24 bg-stone-200 rounded-xl animate-pulse" />
+                    </div>
+                </div>
+            </div>
+            <div className="pt-16 pb-16 md:pt-32 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="h-16 w-3/4 mx-auto bg-stone-200 rounded-2xl animate-pulse mb-8" />
+                <div className="h-4 w-1/2 mx-auto bg-stone-100 rounded animate-pulse mb-4" />
+                <div className="h-4 w-2/3 mx-auto bg-stone-100 rounded animate-pulse mb-10" />
+                <div className="flex justify-center gap-4">
+                    <div className="h-14 w-40 bg-stone-200 rounded-2xl animate-pulse" />
+                    <div className="h-14 w-40 bg-stone-200 rounded-2xl animate-pulse" />
+                </div>
+            </div>
           </div>
         }
       >
@@ -115,6 +143,14 @@ function AppRoutes() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
+            <Route
+                path="/settings"
+                element={
+                    <ProtectedRoute>
+                        <UserSettings />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/admin"
                 element={
@@ -143,18 +179,15 @@ function AppRoutes() {
                     path="/dashboard/business/:businessId"
                     element={
                     <ProtectedRoute>
-                        <MenuEditor />
+                        <BusinessLayout />
                     </ProtectedRoute>
                     }
-                />
-                <Route
-                    path="/dashboard/business/:businessId/settings"
-                    element={
-                    <ProtectedRoute>
-                        <BusinessSettings />
-                    </ProtectedRoute>
-                    }
-                />
+                >
+                    <Route index element={<Navigate to="overview" replace />} />
+                    <Route path="overview" element={<BusinessOverview />} />
+                    <Route path="menu" element={<MenuEditor />} />
+                    <Route path="settings" element={<BusinessSettings />} />
+                </Route>
           </Route>
           
           <Route path="*" element={<Navigate to="/" replace />} />

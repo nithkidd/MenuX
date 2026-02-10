@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { businessService, type Business } from '../services/business.service';
-import { Loader2, Globe, Facebook, Instagram, Twitter, MapPin, Phone, Mail, DollarSign, Palette, Layout, ArrowLeft, Check, X, ChevronRight } from 'lucide-react';
+import { Loader2, Globe, Facebook, Instagram, Twitter, MapPin, Phone, Mail, DollarSign, Palette, Layout, Check, X } from 'lucide-react';
 
 export default function BusinessSettings() {
   const { businessId } = useParams<{ businessId: string }>();
@@ -84,61 +84,13 @@ export default function BusinessSettings() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-sm text-stone-500 mb-6">
-        <Link to="/dashboard" className="hover:text-orange-600 transition-colors">Dashboard</Link>
-        <ChevronRight size={14} />
-        <span className="font-medium text-stone-900 dark:text-white">{business?.name || 'Loading...'}</span>
-        <ChevronRight size={14} />
-        <span className="font-medium text-orange-600">Settings</span>
-      </div>
-
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
-            <Link 
-                to="/dashboard" 
-                className="p-2 rounded-xl text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800 transition-colors"
-            >
-                <ArrowLeft size={24} />
-            </Link>
             <div>
                 <h1 className="text-2xl font-bold text-stone-900 dark:text-white">Business Settings</h1>
                 <p className="text-stone-500 dark:text-stone-400 mt-1">Manage your business profile and preferences.</p>
             </div>
         </div>
-        <button
-            onClick={handleSubmit}
-            disabled={saveStatus !== 'idle' || !hasChanges}
-            className={`
-                flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm active:scale-95
-                ${saveStatus === 'success' 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : saveStatus === 'error'
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : hasChanges
-                            ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-500/20'
-                            : 'bg-stone-200 text-stone-400 dark:bg-stone-800 dark:text-stone-600 cursor-not-allowed'
-                }
-            `}
-        >
-            {saveStatus === 'saving' ? (
-                <>
-                    <Loader2 size={18} className="animate-spin" />
-                    <span>Saving...</span>
-                </>
-            ) : saveStatus === 'success' ? (
-                <>
-                    <Check size={18} />
-                    <span>Saved!</span>
-                </>
-            ) : saveStatus === 'error' ? (
-                <>
-                    <X size={18} />
-                    <span>Failed</span>
-                </>
-            ) : (
-                <span>Save Changes</span>
-            )}
-        </button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
@@ -179,7 +131,7 @@ export default function BusinessSettings() {
                                     name="name"
                                     value={formData.name || ''}
                                     onChange={handleChange}
-                                    className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                 />
                             </div>
 
@@ -200,7 +152,7 @@ export default function BusinessSettings() {
                                                 const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                                                 setFormData(prev => ({ ...prev, slug: val }));
                                             }}
-                                            className="flex-1 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
+                                            className="flex-1 px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
                                         />
                                     </div>
                                     <p className="mt-1 text-xs text-amber-600 dark:text-amber-500 flex items-center gap-1">
@@ -239,7 +191,7 @@ export default function BusinessSettings() {
                                     rows={4}
                                     value={formData.description || ''}
                                     onChange={handleChange}
-                                    className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                     placeholder="Tell customers about your business..."
                                 />
                             </div>
@@ -255,7 +207,7 @@ export default function BusinessSettings() {
                                         name="currency"
                                         value={formData.currency || 'USD'}
                                         onChange={handleChange}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="USD, EUR, etc."
                                     />
                                 </div>
@@ -280,7 +232,7 @@ export default function BusinessSettings() {
                                         name="contact_email"
                                         value={formData.contact_email || ''}
                                         onChange={handleChange}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                     />
                                 </div>
                             </div>
@@ -295,7 +247,7 @@ export default function BusinessSettings() {
                                         name="contact_phone"
                                         value={formData.contact_phone || ''}
                                         onChange={handleChange}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                     />
                                 </div>
                             </div>
@@ -310,7 +262,7 @@ export default function BusinessSettings() {
                                         name="address"
                                         value={formData.address || ''}
                                         onChange={handleChange}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                     />
                                 </div>
                             </div>
@@ -325,7 +277,7 @@ export default function BusinessSettings() {
                                         name="website_url"
                                         value={formData.website_url || ''}
                                         onChange={handleChange}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="https://..."
                                     />
                                 </div>
@@ -344,7 +296,7 @@ export default function BusinessSettings() {
                                         type="text"
                                         value={formData.social_links?.facebook || ''}
                                         onChange={(e) => handleSocialChange('facebook', e.target.value)}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Page URL or Username"
                                     />
                                 </div>
@@ -359,7 +311,7 @@ export default function BusinessSettings() {
                                         type="text"
                                         value={formData.social_links?.instagram || ''}
                                         onChange={(e) => handleSocialChange('instagram', e.target.value)}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Username"
                                     />
                                 </div>
@@ -374,7 +326,7 @@ export default function BusinessSettings() {
                                         type="text"
                                         value={formData.social_links?.twitter || ''}
                                         onChange={(e) => handleSocialChange('twitter', e.target.value)}
-                                        className="pl-9 w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Username"
                                     />
                                 </div>
@@ -395,7 +347,7 @@ export default function BusinessSettings() {
                                     value={formData.logo_url || ''}
                                     onChange={handleChange}
                                     placeholder="https://..."
-                                    className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                 />
                                 {formData.logo_url && (
                                     <div className="mt-2 h-20 w-20 rounded-full overflow-hidden border border-stone-200 dark:border-stone-700">
@@ -412,7 +364,7 @@ export default function BusinessSettings() {
                                     value={formData.cover_image_url || ''}
                                     onChange={handleChange}
                                     placeholder="https://..."
-                                    className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                 />
                                 {formData.cover_image_url && (
                                     <div className="mt-2 h-40 w-full rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700">
@@ -438,6 +390,42 @@ export default function BusinessSettings() {
                         </div>
                     </div>
                 )}
+                <div className="flex justify-end pt-6 border-t border-stone-100 dark:border-stone-800">
+                    <button
+                        type="submit"
+                        disabled={saveStatus !== 'idle' || !hasChanges}
+                        className={`
+                            flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm active:scale-95
+                            ${saveStatus === 'success' 
+                                ? 'bg-green-600 text-white hover:bg-green-700' 
+                                : saveStatus === 'error'
+                                    ? 'bg-red-600 text-white hover:bg-red-700'
+                                    : hasChanges
+                                        ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-500/20'
+                                        : 'bg-stone-200 text-stone-400 dark:bg-stone-800 dark:text-stone-600 cursor-not-allowed'
+                            }
+                        `}
+                    >
+                        {saveStatus === 'saving' ? (
+                            <>
+                                <Loader2 size={18} className="animate-spin" />
+                                <span>Saving...</span>
+                            </>
+                        ) : saveStatus === 'success' ? (
+                            <>
+                                <Check size={18} />
+                                <span>Saved!</span>
+                            </>
+                        ) : saveStatus === 'error' ? (
+                            <>
+                                <X size={18} />
+                                <span>Failed</span>
+                            </>
+                        ) : (
+                            <span>Save Changes</span>
+                        )}
+                    </button>
+                </div>
             </form>
         </div>
       </div>

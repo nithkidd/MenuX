@@ -91,8 +91,9 @@ export const verifyAuth = async (
     const user: AuthUser = {
       id: authUser.id,
       email: authUser.email || "",
-      full_name: authUser.user_metadata?.full_name || null,
-      avatar_url: authUser.user_metadata?.avatar_url || null,
+      // Prioritize DB profile data over Supabase metadata
+      full_name: profile.full_name || authUser.user_metadata?.full_name || null,
+      avatar_url: profile.avatar_url || authUser.user_metadata?.avatar_url || null,
     };
 
     (req as AuthRequest).user = user;

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 @theme {
   --font-sans: 'Inter', sans-serif;
   /* Android-like "Emphasized" motion curve */

@@ -1,27 +1,23 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Plus, Edit2 } from 'lucide-react';
-import type { Category, Item } from '../services/menu.service';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { SortableItem } from './SortableItem';
+import { GripVertical, Trash2, Edit2 } from 'lucide-react';
+import type { Category } from '../services/menu.service';
 
 interface SortableCategoryProps {
   category: Category;
-  items: Item[];
+  itemCount: number;
+  isSelected: boolean;
+  onSelect: (categoryId: string) => void;
   onDeleteCategory: (id: string) => void;
-  onEditItem: (item: Item) => void;
-  onDeleteItem: (id: string) => void;
-  onAddItem: (categoryId: string) => void;
   onEditCategory: (category: Category) => void;
 }
 
 export function SortableCategory({
   category,
-  items,
+  itemCount,
+  isSelected,
+  onSelect,
   onDeleteCategory,
-  onEditItem,
-  onDeleteItem,
-  onAddItem,
   onEditCategory
 }: SortableCategoryProps) {
   const {
@@ -43,61 +39,65 @@ export function SortableCategory({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white dark:bg-stone-900 rounded-3xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden mb-6 ${isDragging ? 'z-40 shadow-xl' : ''}`}
+      className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm cursor-pointer transition-all border ${
+        isSelected 
+            ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800' 
+            : 'bg-transparent text-stone-600 dark:text-stone-400 border-transparent hover:bg-stone-100 dark:hover:bg-stone-800'
+      } ${isDragging ? 'z-40 opacity-50 bg-stone-100' : ''}`}
+      onClick={() => onSelect(category.id)}
     >
-        {/* Category Header with Drag Handle */}
-        <div className="bg-stone-50 dark:bg-stone-800/50 px-4 pl-2 py-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                 <div 
-                    {...attributes} 
-                    {...listeners}
-                    className="text-stone-300 dark:text-stone-600 hover:text-stone-500 dark:hover:text-stone-400 cursor-grab active:cursor-grabbing p-2 touch-none"
-                >
-                    <GripVertical size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-stone-900 dark:text-white">{category.name}</h3>
-            </div>
-            <div className="flex items-center gap-1">
-                <button 
-                    type="button"
-                    onClick={() => onEditCategory(category)} 
-                    className="text-stone-300 hover:text-orange-600 dark:text-stone-600 dark:hover:text-orange-500 transition-colors btn-press p-2"
-                >
-                    <Edit2 size={18} />
-                </button>
-                <button 
-                    type="button"
-                    onClick={() => onDeleteCategory(category.id)} 
-                    className="text-stone-300 hover:text-red-500 dark:text-stone-600 dark:hover:text-red-500 transition-colors btn-press p-2"
-                >
-                    <Trash2 size={18} />
-                </button>
-            </div>
+      <div className="flex items-center gap-3 overflow-hidden">
+        <div
+          {...attributes}
+          {...listeners}
+          className={`cursor-grab active:cursor-grabbing p-1 rounded-md touch-none transition-colors ${
+            isSelected
+                ? 'text-orange-300 dark:text-orange-700 hover:text-orange-500 dark:hover:text-orange-500'
+                : 'text-stone-300 dark:text-stone-600 hover:text-stone-500 dark:hover:text-stone-400 group-hover:text-stone-400'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical size={16} />
         </div>
-        
-        <div className="p-6 space-y-4">
-            <SortableContext 
-                items={items.map(item => item.id)} 
-                strategy={verticalListSortingStrategy}
-            >
-                {items.map(item => (
-                    <SortableItem 
-                        key={item.id} 
-                        item={item} 
-                        onEdit={onEditItem} 
-                        onDelete={onDeleteItem} 
-                    />
-                ))}
-            </SortableContext>
-            
-            <button 
-                type="button"
-                onClick={() => onAddItem(category.id)}
-                className="mt-2 w-full flex items-center justify-center p-3 border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl text-stone-400 dark:text-stone-500 hover:border-orange-300 dark:hover:border-orange-700 hover:text-orange-600 dark:hover:text-orange-500 font-medium transition-all btn-press"
-            >
-                <Plus size={16} className="mr-1" /> Add New Item
-            </button>
+        <div className="flex flex-col truncate">
+          <span className={`font-semibold truncate ${isSelected ? 'text-orange-900 dark:text-orange-100' : 'text-stone-700 dark:text-stone-300'}`}>
+            {category.name}
+          </span>
+          <span className={`text-xs ${isSelected ? 'text-orange-500 dark:text-orange-400' : 'text-stone-400 dark:text-stone-500'}`}>
+            {itemCount} item{itemCount === 1 ? '' : 's'}
+          </span>
         </div>
+      </div>
+      <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isSelected ? 'opacity-100' : ''}`}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditCategory(category);
+          }}
+          className={`p-1.5 rounded-lg transition-colors ${
+             isSelected 
+             ? 'text-orange-400 hover:text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/40' 
+             : 'text-stone-400 hover:text-orange-600 hover:bg-stone-200 dark:hover:bg-stone-700' 
+          }`}
+        >
+          <Edit2 size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteCategory(category.id);
+          }}
+          className={`p-1.5 rounded-lg transition-colors ${
+             isSelected 
+             ? 'text-orange-400 hover:text-red-600 hover:bg-orange-100 dark:hover:bg-orange-900/40' 
+             : 'text-stone-400 hover:text-red-600 hover:bg-stone-200 dark:hover:bg-stone-700' 
+          }`}
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
     </div>
   );
 }
