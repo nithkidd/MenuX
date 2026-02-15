@@ -37,7 +37,7 @@ const Hero = () => (
 
       {/* 3D Mockup Placeholder */}
       <div className="relative mx-auto mt-16 max-w-5xl">
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-stone-900 bg-stone-800 aspect-[16/9] md:aspect-[21/9] transform rotate-1 hover:rotate-0 transition-all duration-700 ease-out">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-stone-900 bg-stone-800 aspect-[16/9] md:aspect-[21/9] transform md:rotate-1 hover:rotate-0 transition-all duration-700 ease-out">
             <iframe 
                 src="/menu/demo-restaurant" 
                 className="w-full h-full border-0"
@@ -119,7 +119,7 @@ const DemoSection = () => (
                 </div>
                 <div className="relative">
                      {/* Abstract representation of "Editor" vs "Customer" view */}
-                    <div className="relative z-10 bg-white rounded-3xl p-2 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
+                     <div className="relative z-10 bg-white rounded-3xl p-2 shadow-2xl rotate-0 md:rotate-3 md:hover:rotate-0 transition-transform duration-500">
                         <div className="bg-stone-100 rounded-2xl overflow-hidden aspect-[9/16] relative border-4 border-stone-200">
                              <iframe 
                                 src="/menu/demo-restaurant" 
