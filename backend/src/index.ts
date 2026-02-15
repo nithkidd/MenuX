@@ -15,9 +15,13 @@ const PORT = process.env.PORT || 3001;
 // Security middleware (must be first)
 app.use(securityMiddleware);
 
-// Middleware
+// Middleware - extract just the origin (no paths) from FRONTEND_URL
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const corsOrigin = new URL(frontendUrl).origin;
+console.log(`🔒 CORS origin: ${corsOrigin}`);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: corsOrigin,
   credentials: true,
 }));
 app.use(express.json());
