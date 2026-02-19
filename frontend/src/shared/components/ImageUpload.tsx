@@ -2,6 +2,7 @@ import {
   useState,
   useRef,
   useCallback,
+  useEffect,
   type ChangeEvent,
   type MouseEvent,
   type FC,
@@ -41,6 +42,11 @@ export const ImageUpload: FC<ImageUploadProps> = ({
   const [preview, setPreview] = useState<string | null>(initialUrl || null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Sync preview with initialUrl when it changes (e.g. after data load)
+  useEffect(() => {
+    setPreview(initialUrl || null);
+  }, [initialUrl]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<"upload" | "link">("upload");

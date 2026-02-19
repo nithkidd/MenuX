@@ -9,8 +9,6 @@ import {
   X,
   Shield,
 } from "lucide-react";
-import { ImageUpload } from "../../../shared/components/ImageUpload";
-import { menuService } from "../../menu/services/menu.service";
 
 export default function UserSettings() {
   const {
@@ -50,21 +48,6 @@ export default function UserSettings() {
       });
     }
   }, [user]);
-
-  useEffect(() => {
-    if (formData.avatar_url) {
-      setAvatarVersion(Date.now());
-    }
-  }, [formData.avatar_url]);
-
-  const getAvatarUrl = (url: string) => {
-    if (!url.includes("/upload/")) return url;
-    return url.replace("/upload/", "/upload/c_fill,w_256,h_256,q_auto,f_auto/");
-  };
-
-  const avatarInitialUrl = formData.avatar_url
-    ? `${getAvatarUrl(formData.avatar_url)}${formData.avatar_url.includes("?") ? "&" : "?"}v=${avatarVersion}`
-    : formData.avatar_url;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -209,27 +192,17 @@ export default function UserSettings() {
                   {/* Profile Header */}
                   <div className="flex items-center gap-4 pb-6 border-b border-stone-100 dark:border-stone-800">
                     <div className="w-32">
-                      <ImageUpload
-                        initialUrl={avatarInitialUrl}
-                        onUpload={(url) =>
-                          setFormData((prev) => ({ ...prev, avatar_url: url }))
-                        }
-                        onRemove={async () => {
-                          if (formData.avatar_url) {
-                            const publicId = menuService.getPublicIdFromUrl(
-                              formData.avatar_url,
-                            );
-                            if (publicId)
-                              await menuService.deleteImage(publicId);
-                            setFormData((prev) => ({
-                              ...prev,
-                              avatar_url: null,
-                            }));
-                          }
-                        }}
-                        aspectRatio={1}
-                        className="w-32 h-32 rounded-full overflow-hidden"
-                      />
+                      <div className="w-32 h-32 rounded-full overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                        {formData.avatar_url ? (
+                          <img
+                            src={formData.avatar_url}
+                            alt={formData.full_name || "User"}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <UserIcon size={48} className="text-stone-400" />
+                        )}
+                      </div>
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-stone-900 dark:text-white">

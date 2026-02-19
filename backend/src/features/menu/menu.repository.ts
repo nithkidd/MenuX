@@ -35,30 +35,45 @@ export class MenuRepository {
   }
 
   async getCategoriesWithItems(businessId: string): Promise<(Category & { items: Item[] })[]> {
+    // 1. Fetch all categories for the business
     const { data: categories, error: catError } = await supabaseAdmin
       .from('categories')
       .select('*')
       .eq('business_id', businessId)
       .order('sort_order', { ascending: true });
 
-    if (catError || !categories) return [];
+    if (catError || !categories || categories.length === 0) return [];
 
-    // Fetch items for each category
-    const result = await Promise.all(
-      (categories as Category[]).map(async (category) => {
-        const { data: items } = await supabaseAdmin
-          .from('items')
-          .select('*')
-          .eq('category_id', category.id)
-          .eq('is_available', true)
-          .order('sort_order', { ascending: true });
+    // 2. Extract category IDs
+    const categoryIds = categories.map((c) => c.id);
 
-        return {
-          ...category,
-          items: (items || []) as Item[],
-        };
-      })
-    );
+    // 3. Fetch all items for these categories in ONE query
+    const { data: items, error: itemError } = await supabaseAdmin
+      .from('items')
+      .select('*')
+      .in('category_id', categoryIds)
+      .eq('is_available', true)
+      .order('sort_order', { ascending: true });
+
+    if (itemError) {
+      console.error('Error fetching items:', itemError);
+      return [];
+    }
+
+    // 4. Group items by category_id for O(1) lookup
+    const itemsByCategoryId: Record<string, Item[]> = {};
+    (items as Item[]).forEach((item) => {
+      if (!itemsByCategoryId[item.category_id]) {
+        itemsByCategoryId[item.category_id] = [];
+      }
+      itemsByCategoryId[item.category_id].push(item);
+    });
+
+    // 5. Map attributes back to categories
+    const result = (categories as Category[]).map((category) => ({
+      ...category,
+      items: itemsByCategoryId[category.id] || [],
+    }));
 
     return result;
   }
