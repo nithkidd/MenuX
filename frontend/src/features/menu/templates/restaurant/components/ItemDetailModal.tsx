@@ -1,79 +1,83 @@
-import { useRef, useEffect } from 'react';
-import { X, Leaf, Flame, Image as ImageIcon } from 'lucide-react';
-import ReactDOM from 'react-dom';
-import type { Item } from '../../../services/menu.service';
-import { getFontClass } from '../../../../../shared/utils/text-utils';
+import { useRef, useEffect } from "react";
+import { X, Leaf, Flame, Image as ImageIcon } from "lucide-react";
+import ReactDOM from "react-dom";
+import type { Item } from "../../../services/menu.service";
+import { getFontClass } from "../../../../../shared/utils/text-utils";
 
 interface ItemDetailModalProps {
   item: Item | null;
   isOpen: boolean;
   onClose: () => void;
-  currentLang: 'en' | 'km';
+  currentLang: "en" | "km";
   exchangeRate?: number;
 }
 
-export function ItemDetailModal({ 
-  item, 
-  isOpen, 
-  onClose, 
-  currentLang, 
-  exchangeRate = 4000 
+export function ItemDetailModal({
+  item,
+  isOpen,
+  onClose,
+  currentLang,
+  exchangeRate = 4000,
 }: ItemDetailModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden'; // Prevent scrolling background
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden"; // Prevent scrolling background
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
-  
+
   if (!isOpen || !item) return null;
 
-  const displayName = (currentLang === 'km' && item.name_km) ? item.name_km : item.name;
-  const fontClass = getFontClass(displayName, currentLang === 'km' ? 'font-khmer' : 'font-english');
+  const displayName =
+    currentLang === "km" && item.name_km ? item.name_km : item.name;
+  const fontClass = getFontClass(
+    displayName,
+    currentLang === "km" ? "font-khmer" : "font-english",
+  );
 
   // Currency Formatting (Reused logic)
   const formatPrice = (price: number) => {
-    const numPrice = typeof price === 'number' ? price : Number(price);
-    if (isNaN(numPrice)) return '';
+    const numPrice = typeof price === "number" ? price : Number(price);
+    if (isNaN(numPrice)) return "";
 
-    if (currentLang === 'km') {
-        const khrPrice = Math.round(numPrice * exchangeRate / 100) * 100;
-        return `${khrPrice.toLocaleString()} ៛`;
+    if (currentLang === "km") {
+      const khrPrice = Math.round((numPrice * exchangeRate) / 100) * 100;
+      return `${khrPrice.toLocaleString()} ៛`;
     }
     return `$${numPrice.toFixed(2)}`;
   };
 
   const modalContent = (
-    <div 
+    <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
     >
       {/* Backdrop with blur effect */}
-      <div 
+      <div
         className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
 
       {/* Modal Card */}
-      <div 
+      <div
         ref={modalRef}
         className="relative w-full max-w-lg bg-white dark:bg-stone-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-up"
       >
         {/* Close Button - absolute positioned */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-3 right-3 z-10 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-md transition-colors"
           aria-label="Close"
@@ -84,9 +88,9 @@ export function ItemDetailModal({
         {/* Hero Image */}
         <div className="relative w-full aspect-square bg-stone-100 dark:bg-stone-800 shrink-0">
           {item.image_url ? (
-            <img 
-              src={item.image_url} 
-              alt={displayName} 
+            <img
+              src={item.image_url}
+              alt={displayName}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -94,7 +98,7 @@ export function ItemDetailModal({
               <ImageIcon size={48} />
             </div>
           )}
-          
+
           {/* Badges Overlay */}
           <div className="absolute bottom-3 left-3 flex gap-2">
             {item.is_vegetarian && (
@@ -113,31 +117,35 @@ export function ItemDetailModal({
         {/* Content Body */}
         <div className="p-6 flex flex-col overflow-y-auto">
           <div className="flex justify-between items-start gap-4 mb-3">
-            <h2 className={`text-xl font-bold text-stone-900 dark:text-white leading-tight ${fontClass}`}>
+            <h2
+              className={`text-xl font-bold text-stone-900 dark:text-white leading-tight ${fontClass}`}
+            >
               {displayName}
             </h2>
-            <div 
-                className={`text-lg font-bold px-3 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 whitespace-nowrap ${currentLang === 'km' ? 'font-khmer' : ''}`}
-                style={{ color: 'var(--primary)' }}
+            <div
+              className={`text-lg font-bold px-3 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 whitespace-nowrap ${currentLang === "km" ? "font-khmer" : ""}`}
+              style={{ color: "var(--primary)" }}
             >
-               {formatPrice(item.price)}
+              {formatPrice(item.price)}
             </div>
           </div>
 
           <div className="prose prose-stone dark:prose-invert prose-sm max-w-none">
-             {item.description ? (
-               <p className="whitespace-pre-wrap text-stone-600 dark:text-stone-300 leading-relaxed text-sm">
-                   {item.description}
-               </p>
-             ) : (
-                <p className="italic text-stone-400 text-sm">No description available.</p>
-             )}
+            {item.description ? (
+              <p className="whitespace-pre-wrap text-stone-600 dark:text-stone-300 leading-relaxed text-sm">
+                {item.description}
+              </p>
+            ) : (
+              <p className="italic text-stone-400 text-sm">
+                No description available.
+              </p>
+            )}
           </div>
 
           {!item.is_available && (
-             <div className="mt-6 p-3 bg-stone-100 dark:bg-stone-800 rounded-xl text-center text-stone-500 font-medium text-sm border border-stone-200 dark:border-stone-700">
-                Currently Unavailable
-             </div>
+            <div className="mt-6 p-3 bg-stone-100 dark:bg-stone-800 rounded-xl text-center text-stone-500 font-medium text-sm border border-stone-200 dark:border-stone-700">
+              Currently Unavailable
+            </div>
           )}
         </div>
       </div>
