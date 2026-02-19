@@ -82,7 +82,7 @@ export function ItemDetailModal({
         </button>
 
         {/* Hero Image */}
-        <div className="relative w-full aspect-video bg-stone-100 dark:bg-stone-800 shrink-0">
+        <div className="relative w-full aspect-square bg-stone-100 dark:bg-stone-800 shrink-0">
           {item.image_url ? (
             <img 
               src={item.image_url} 
