@@ -27,7 +27,6 @@ export default function UserSettings() {
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [avatarVersion, setAvatarVersion] = useState(0);
 
   // Form State
   const [formData, setFormData] = useState<Partial<User>>({});
