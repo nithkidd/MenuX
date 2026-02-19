@@ -4,12 +4,14 @@ import api from '../../../shared/utils/api';
 export interface Business {
   id: string;
   name: string;
+  name_km?: string;
   slug: string;
   business_type: 'restaurant' | 'gaming_gear';
   logo_url: string | null;
   description: string | null;
   is_active: boolean;
   is_published: boolean;
+  exchange_rate_khr?: number;
   created_at: string;
   // New Settings Fields
   contact_email?: string;

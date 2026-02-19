@@ -62,7 +62,8 @@ class ErrorBoundary extends React.Component<Props, State> {
                 </button>
             </div>
 
-            <details className="mt-8 text-left group">
+            {/* Technical details hidden for production */}
+            {/* <details className="mt-8 text-left group">
                 <summary className="text-xs text-stone-400 dark:text-stone-500 cursor-pointer hover:underline">
                     View technical details
                 </summary>
@@ -71,7 +72,7 @@ class ErrorBoundary extends React.Component<Props, State> {
                         {this.state.error?.stack || this.state.error?.toString()}
                     </pre>
                 </div>
-            </details>
+            </details> */}
           </div>
         </div>
       );

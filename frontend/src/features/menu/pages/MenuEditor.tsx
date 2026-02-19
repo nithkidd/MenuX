@@ -8,6 +8,7 @@ import {
 import PageTransition from '../../../shared/components/PageTransition'; 
 import ItemModal from '../components/ItemModal';
 import CategoryModal from '../components/CategoryModal';
+import ConfirmDialog from '../../../shared/components/ConfirmDialog';
 
 import { 
   DndContext, 
@@ -39,6 +40,21 @@ export default function MenuEditor() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [targetCategoryId, setTargetCategoryId] = useState<string | null>(null);
+
+  // Confirm Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    loading?: boolean;
+    variant?: 'danger' | 'warning' | 'default';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   type NotificationType = 'success' | 'error';
   interface Notification {
@@ -171,14 +187,14 @@ export default function MenuEditor() {
     }
   };
 
-  const handleSaveCategory = async (name: string) => {
+  const handleSaveCategory = async (name: string, name_km?: string) => {
     if (!businessId) return;
     try {
       if (editingCategory) {
-        await menuService.updateCategory(editingCategory.id, name);
+        await menuService.updateCategory(editingCategory.id, name, name_km);
         showNotification('Category updated', 'success');
       } else {
-        await menuService.createCategory(businessId, name);
+        await menuService.createCategory(businessId, name, name_km);
         showNotification('Category created', 'success');
       }
       setIsCategoryModalOpen(false);
@@ -189,15 +205,27 @@ export default function MenuEditor() {
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete category?')) return;
-    try {
-      await menuService.deleteCategory(id);
-      loadMenu();
-    } catch (error) {
-      console.error('Failed to delete category', error);
-      showNotification('Failed to delete category', 'error');
-    }
+  const handleDeleteCategory = (id: string) => {
+    const category = categories.find(c => c.id === id);
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Category',
+      message: `Are you sure you want to delete "${category?.name || 'this category'}"? All items inside this category will also be deleted. This action cannot be undone.`,
+      variant: 'danger',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, loading: true }));
+        try {
+          await menuService.deleteCategory(id);
+          showNotification('Category deleted', 'success');
+          loadMenu();
+          setConfirmDialog(prev => ({ ...prev, isOpen: false, loading: false }));
+        } catch (error) {
+          console.error('Failed to delete category', error);
+          showNotification('Failed to delete category', 'error');
+          setConfirmDialog(prev => ({ ...prev, loading: false }));
+        }
+      },
+    });
   };
 
   // Open modal for Create Item
@@ -240,15 +268,35 @@ export default function MenuEditor() {
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-     if (!confirm('Delete item?')) return;
-     try {
-       await menuService.deleteItem(id);
-       loadMenu();
-     } catch (error) {
-       console.error('Failed to delete item', error);
-       showNotification('Failed to delete item', 'error');
+  const handleDeleteItem = (id: string) => {
+     let itemName = 'this item';
+     for (const cat of categories) {
+        const item = cat.items?.find(i => i.id === id);
+        if (item) {
+            itemName = item.name;
+            break;
+        }
      }
+     
+     setConfirmDialog({
+       isOpen: true,
+       title: 'Delete Item',
+       message: `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
+       variant: 'danger',
+       onConfirm: async () => {
+         setConfirmDialog(prev => ({ ...prev, loading: true }));
+         try {
+           await menuService.deleteItem(id);
+           showNotification('Item deleted', 'success');
+           loadMenu();
+           setConfirmDialog(prev => ({ ...prev, isOpen: false, loading: false }));
+         } catch (error) {
+           console.error('Failed to delete item', error);
+           showNotification('Failed to delete item', 'error');
+           setConfirmDialog(prev => ({ ...prev, loading: false }));
+         }
+       },
+     });
   };
 
   if (loading) {
@@ -476,6 +524,13 @@ export default function MenuEditor() {
             onClose={() => setIsCategoryModalOpen(false)}
             onSave={handleSaveCategory}
             initialName={editingCategory?.name}
+            initialNameKm={editingCategory?.name_km}
+        />
+
+        {/* Action Confirm Dialog */}
+        <ConfirmDialog 
+            {...confirmDialog}
+            onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
         />
 
       </div>

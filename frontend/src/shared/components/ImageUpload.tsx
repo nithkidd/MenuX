@@ -29,6 +29,7 @@ interface ImageUploadProps {
   className?: string;
   onError?: (message: string) => void;
   aspectRatio?: number; // e.g., 1 for square, 16/9 for wide
+  layout?: 'row' | 'col';
 }
 
 export const ImageUpload: FC<ImageUploadProps> = ({
@@ -38,6 +39,7 @@ export const ImageUpload: FC<ImageUploadProps> = ({
   className = "",
   onError,
   aspectRatio,
+  layout = 'row',
 }) => {
   const [preview, setPreview] = useState<string | null>(initialUrl || null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -282,26 +284,46 @@ export const ImageUpload: FC<ImageUploadProps> = ({
   // Preview Mode (Image already set)
   if (preview) {
     return (
-      <div className={`w-full ${className}`}>
-        <div className="relative w-full h-48 rounded-xl overflow-hidden group border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-950">
-          <img
+      <div className={`w-full flex ${layout === 'col' ? 'flex-col items-start' : 'items-center'} gap-6`}>
+        <div className={`relative overflow-hidden bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-700 flex-shrink-0 ${className}`}>
+           <img
             src={preview}
             alt="Preview"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 btn-press transform hover:scale-105 transition-transform"
-            >
-              <X size={20} />
-            </button>
-          </div>
-          <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none">
-            Click X to Replace
-          </div>
         </div>
+        
+        {/* Actions */}
+        <div className={`flex ${layout === 'col' ? 'flex-row items-center' : 'flex-col'} gap-3`}>
+            <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-white hover:bg-stone-50 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 rounded-xl text-sm font-bold shadow-sm transition-all btn-press flex items-center gap-2"
+             >
+                <ImagePlus size={16} />
+                Change Image
+             </button>
+             
+             {onRemove && (
+                 <button
+                    type="button"
+                    onClick={handleRemove}
+                    className="px-4 py-2 bg-white hover:bg-red-50 dark:bg-stone-800 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border border-stone-200 dark:border-stone-700 rounded-xl text-sm font-bold shadow-sm transition-all btn-press flex items-center gap-2"
+                 >
+                    <X size={16} />
+                    Remove
+                 </button>
+             )}
+        </div>
+          
+        {/* Hidden input for change action */}
+        <input
+            type="file"
+            ref={fileInputRef}
+            onChange={onFileInputChange}
+            accept="image/*"
+            className="hidden"
+          />
       </div>
     );
   }

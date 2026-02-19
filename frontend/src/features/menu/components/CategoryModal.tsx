@@ -4,8 +4,9 @@ import { X } from 'lucide-react';
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (name: string) => Promise<void> | void;
+  onSave: (name: string, name_km?: string) => Promise<void> | void;
   initialName?: string;
+  initialNameKm?: string;
 }
 
 import Portal from '../../../shared/components/Portal';
@@ -15,16 +16,19 @@ export default function CategoryModal({
   onClose,
   onSave,
   initialName = '',
+  initialNameKm = '',
 }: CategoryModalProps) {
   const [name, setName] = useState(initialName);
+  const [nameKm, setNameKm] = useState(initialNameKm);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setName(initialName);
+      setNameKm(initialNameKm);
       setIsSubmitting(false);
     }
-  }, [isOpen, initialName]);
+  }, [isOpen, initialName, initialNameKm]);
 
   if (!isOpen) return null;
 
@@ -34,7 +38,7 @@ export default function CategoryModal({
     
     setIsSubmitting(true);
     try {
-        await onSave(name);
+        await onSave(name, nameKm);
     } finally {
         setIsSubmitting(false);
     }
@@ -64,16 +68,29 @@ export default function CategoryModal({
             <div className="p-6">
                 <form id="category-form" onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Category Name</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Category Name (Primary)</label>
                         <input
                             type="text"
                             required
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Starters, Main Course"
-                            className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm"
+                            className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm font-english"
                             autoFocus
                             disabled={isSubmitting}
+                            maxLength={100}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Category Name (Khmer - Optional)</label>
+                        <input
+                            type="text"
+                            value={nameKm}
+                            onChange={(e) => setNameKm(e.target.value)}
+                            placeholder="e.g. គ្រឿងក្លែម"
+                            className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm font-khmer"
+                            disabled={isSubmitting}
+                            maxLength={100}
                         />
                     </div>
                 </form>

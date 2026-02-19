@@ -1,6 +1,7 @@
+import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Edit2 } from 'lucide-react';
+import { GripVertical, Trash2, Edit2, MoreVertical } from 'lucide-react';
 import type { Category } from '../services/menu.service';
 
 interface SortableCategoryProps {
@@ -20,6 +21,9 @@ export function SortableCategory({
   onDeleteCategory,
   onEditCategory
 }: SortableCategoryProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const {
     attributes,
     listeners,
@@ -34,6 +38,20 @@ export function SortableCategory({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   return (
     <div
@@ -68,35 +86,49 @@ export function SortableCategory({
           </span>
         </div>
       </div>
-      <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isSelected ? 'opacity-100' : ''}`}>
+
+      <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            onEditCategory(category);
+            setIsMenuOpen(!isMenuOpen);
           }}
           className={`p-1.5 rounded-lg transition-colors ${
              isSelected 
              ? 'text-orange-400 hover:text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/40' 
-             : 'text-stone-400 hover:text-orange-600 hover:bg-stone-200 dark:hover:bg-stone-700' 
+             : 'text-stone-400 hover:text-stone-600 hover:bg-stone-200 dark:hover:bg-stone-700' 
           }`}
         >
-          <Edit2 size={14} />
+          <MoreVertical size={16} />
         </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDeleteCategory(category.id);
-          }}
-          className={`p-1.5 rounded-lg transition-colors ${
-             isSelected 
-             ? 'text-orange-400 hover:text-red-600 hover:bg-orange-100 dark:hover:bg-orange-900/40' 
-             : 'text-stone-400 hover:text-red-600 hover:bg-stone-200 dark:hover:bg-stone-700' 
-          }`}
-        >
-          <Trash2 size={14} />
-        </button>
+
+        {isMenuOpen && (
+            <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-100 dark:border-stone-800 z-[60] py-1 animate-fade-in-up">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEditCategory(category);
+                        setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                >
+                    <Edit2 size={14} className="text-stone-400" />
+                    Edit
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteCategory(category.id);
+                        setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+                >
+                    <Trash2 size={14} />
+                    Delete
+                </button>
+            </div>
+        )}
       </div>
     </div>
   );

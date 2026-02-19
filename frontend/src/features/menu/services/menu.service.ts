@@ -5,6 +5,7 @@ export interface Item {
   id: string;
   category_id: string;
   name: string;
+  name_km?: string;
   description: string | null;
   price: number;
   image_url: string | null;
@@ -18,6 +19,7 @@ export interface Category {
   id: string;
   business_id: string;
   name: string;
+  name_km?: string;
   sort_order: number;
   items: Item[];
 }
@@ -28,13 +30,13 @@ export const menuService = {
     return response.data.data;
   },
 
-  createCategory: async (businessId: string, name: string) => {
-    const response = await api.post<{ success: boolean; data: Category }>(`/business/${businessId}/categories`, { name });
+  createCategory: async (businessId: string, name: string, name_km?: string) => {
+    const response = await api.post<{ success: boolean; data: Category }>(`/business/${businessId}/categories`, { name, name_km });
     return response.data.data;
   },
 
-  updateCategory: async (id: string, name: string) => {
-    const response = await api.put<{ success: boolean; data: Category }>(`/categories/${id}`, { name });
+  updateCategory: async (id: string, name: string, name_km?: string) => {
+    const response = await api.put<{ success: boolean; data: Category }>(`/categories/${id}`, { name, name_km });
     return response.data.data;
   },
 

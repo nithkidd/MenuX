@@ -98,6 +98,7 @@ export default function Login() {
                             type="text"
                             className="mt-1 block w-full rounded-xl border-stone-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2 px-3 border dark:bg-stone-700 dark:border-stone-600 dark:text-white dark:placeholder-stone-400"
                             placeholder="John Doe"
+                            maxLength={100}
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                         />
@@ -111,6 +112,7 @@ export default function Login() {
                         required
                         className="mt-1 block w-full rounded-xl border-stone-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2 px-3 border dark:bg-stone-700 dark:border-stone-600 dark:text-white dark:placeholder-stone-400"
                         placeholder="you@example.com"
+                        maxLength={255}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         />
@@ -124,6 +126,7 @@ export default function Login() {
                             required
                             className="block w-full rounded-xl border-stone-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2 pl-3 pr-10 border dark:bg-stone-700 dark:border-stone-600 dark:text-white dark:placeholder-stone-400"
                             placeholder="••••••••"
+                            maxLength={128}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                           />

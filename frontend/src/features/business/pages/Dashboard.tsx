@@ -2,19 +2,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { businessService, type Business } from '../services/business.service';
 import { Link } from 'react-router-dom';
-import { Settings, Plus, Store, TrendingUp, PowerOff, Eye, EyeOff, Trash2, ExternalLink, Search } from 'lucide-react';
+import { Settings, Plus, Store, TrendingUp, PowerOff, Eye, EyeOff, Search } from 'lucide-react';
 import PageTransition from '../../../shared/components/PageTransition';
-import ConfirmDialog from '../../../shared/components/ConfirmDialog';
-import { useToast } from '../../../shared/contexts/ToastContext';
 
 export default function Dashboard() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; business: Business | null }>({ isOpen: false, business: null });
-  const [deleting, setDeleting] = useState(false);
-  const { showToast } = useToast();
+
 
   const filteredBusinesses = useMemo(() => {
     return businesses.filter(biz => 
@@ -39,26 +35,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteClick = (business: Business) => {
-    setDeleteDialog({ isOpen: true, business });
-  };
 
-  const handleDeleteConfirm = async () => {
-    if (!deleteDialog.business) return;
-    
-    setDeleting(true);
-    try {
-      await businessService.delete(deleteDialog.business.id);
-      setBusinesses(prev => prev.filter(b => b.id !== deleteDialog.business!.id));
-      showToast(`"${deleteDialog.business.name}" deleted successfully`);
-      setDeleteDialog({ isOpen: false, business: null });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete business';
-      showToast(message, 'error');
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   return (
     <PageTransition>
@@ -248,25 +225,7 @@ export default function Dashboard() {
                         </div>
 
                         {/* Card Footer */}
-                        <div className="px-6 py-4 bg-stone-50 dark:bg-stone-950/50 border-t border-stone-100 dark:border-stone-800 flex justify-between items-center relative z-10">
-                            <div className="flex items-center gap-3">
-                                <Link 
-                                    to={`/dashboard/business/${biz.id}/menu`}
-                                    className="text-sm font-bold text-stone-600 hover:text-orange-600 dark:text-stone-400 dark:hover:text-orange-400 transition-colors flex items-center gap-1"
-                                >
-                                    Edit Menu
-                                </Link>
-                                <a 
-                                    href={`/menu/${biz.slug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-medium text-stone-500 hover:text-blue-600 dark:text-stone-500 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
-                                    title="Preview Public Menu"
-                                >
-                                    <ExternalLink size={14} />
-                                    Preview
-                                </a>
-                            </div>
+                        <div className="px-6 py-4 bg-stone-50 dark:bg-stone-950/50 border-t border-stone-100 dark:border-stone-800 flex justify-end items-center relative z-10">
                             <div className="flex items-center gap-2">
                                 <Link 
                                     to={`/dashboard/business/${biz.id}/settings`}
@@ -275,13 +234,6 @@ export default function Dashboard() {
                                 >
                                     <Settings size={18} />
                                 </Link>
-                                <button
-                                    onClick={() => handleDeleteClick(biz)}
-                                    className="p-2 rounded-lg text-stone-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors btn-press"
-                                    title="Delete Business"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -291,26 +243,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={deleteDialog.isOpen}
-        title="Delete Business?"
-        message={
-          deleteDialog.business ? (
-            <>
-              Are you sure you want to delete <strong>"{deleteDialog.business.name}"</strong>? 
-              This will permanently delete all associated categories, items, and data. 
-              This action cannot be undone.
-            </>
-          ) : ''
-        }
-        confirmLabel="Delete Business"
-        cancelLabel="Cancel"
-        variant="danger"
-        loading={deleting}
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteDialog({ isOpen: false, business: null })}
-      />
+
     </PageTransition>
   );
 }

@@ -1,6 +1,7 @@
+import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Edit2, Trash2 } from 'lucide-react';
+import { GripVertical, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import type { Item } from '../services/menu.service';
 
 interface SortableItemProps {
@@ -10,6 +11,9 @@ interface SortableItemProps {
 }
 
 export function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const {
     attributes,
     listeners,
@@ -24,6 +28,20 @@ export function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   return (
     <div
@@ -54,25 +72,43 @@ export function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
                 <span className="font-semibold text-stone-900 dark:text-white mr-2">{item.name}</span>
                 {!item.is_available && <span className="text-xs bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 px-1.5 py-0.5 rounded">Sold Out</span>}
             </div>
-            <div className="text-sm text-stone-500 dark:text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity">${item.price.toFixed(2)}</div>
+            <div className="text-sm text-stone-500 dark:text-stone-400">${item.price.toFixed(2)}</div>
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+      <div className="relative" ref={menuRef}>
         <button 
             type="button"
-            onClick={() => onEdit(item)} 
-            className="text-stone-400 hover:text-orange-600 dark:text-stone-500 dark:hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors btn-press"
+            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+            className="text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 p-2 rounded-full hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors btn-press"
         >
-            <Edit2 size={16} />
+            <MoreVertical size={20} />
         </button>
-        <button 
-            type="button"
-            onClick={() => onDelete(item.id)} 
-            className="text-stone-400 hover:text-red-500 dark:text-stone-500 dark:hover:text-red-500 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors btn-press"
-        >
-            <Trash2 size={16} />
-        </button>
+
+        {isMenuOpen && (
+            <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-100 dark:border-stone-800 z-[60] py-1 animate-fade-in-up">
+                <button
+                    onClick={() => {
+                        onEdit(item);
+                        setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                >
+                    <Edit2 size={14} className="text-stone-400" />
+                    Edit
+                </button>
+                <button
+                    onClick={() => {
+                        onDelete(item.id);
+                        setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                    <Trash2 size={14} />
+                    Delete Item
+                </button>
+            </div>
+        )}
       </div>
     </div>
   );

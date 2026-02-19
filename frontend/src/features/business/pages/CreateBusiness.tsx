@@ -87,6 +87,7 @@ export default function CreateBusiness() {
                     onChange={(e) => setName(e.target.value)}
                     className="block w-full appearance-none rounded-xl border border-stone-300 dark:border-stone-700 dark:bg-stone-950 dark:text-white px-3 py-2 placeholder-stone-400 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
                     placeholder="e.g. The Burger Joint"
+                    maxLength={100}
                     />
                 </div>
                 </div>
@@ -122,6 +123,7 @@ export default function CreateBusiness() {
                     onChange={(e) => setDescription(e.target.value)}
                     className="block w-full rounded-xl border-stone-300 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm px-3 py-2"
                     placeholder="A short description of your business..."
+                    maxLength={1000}
                     />
                 </div>
                 </div>

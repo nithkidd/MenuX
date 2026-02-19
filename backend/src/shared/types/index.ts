@@ -25,6 +25,7 @@ export interface Business {
   id: string;
   owner_id: string;
   name: string;
+  name_km?: string;
   slug: string;
   business_type: BusinessType;
   logo_url: string | null;
@@ -33,6 +34,7 @@ export interface Business {
   is_published: boolean;
   created_at: string;
   updated_at: string;
+  exchange_rate_khr?: number;
 }
 
 // Category
@@ -40,6 +42,7 @@ export interface Category {
   id: string;
   business_id: string;
   name: string;
+  name_km?: string;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -50,6 +53,7 @@ export interface Item {
   id: string;
   category_id: string;
   name: string;
+  name_km?: string;
   description: string | null;
   price: number;
   image_url: string | null;
@@ -71,7 +75,7 @@ export interface ApiResponse<T = unknown> {
 export interface PublicMenu {
   business: Pick<
     Business,
-    "name" | "slug" | "logo_url" | "description" | "business_type" | "is_published"
+    "name" | "slug" | "logo_url" | "description" | "business_type" | "is_published" | "name_km"
   >;
   categories: (Category & { items: Item[] })[];
 }
@@ -79,6 +83,7 @@ export interface PublicMenu {
 // Create/Update DTOs
 export interface CreateBusinessDto {
   name: string;
+  name_km?: string;
   business_type: BusinessType;
   description?: string;
   is_published?: boolean;
@@ -86,6 +91,7 @@ export interface CreateBusinessDto {
 
 export interface UpdateBusinessDto {
   name?: string;
+  name_km?: string;
   slug?: string;
   description?: string;
   logo_url?: string;
@@ -95,11 +101,13 @@ export interface UpdateBusinessDto {
 
 export interface CreateCategoryDto {
   name: string;
+  name_km?: string;
   business_id: string;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
+  name_km?: string;
 }
 
 export interface ReorderDto {
@@ -109,6 +117,7 @@ export interface ReorderDto {
 
 export interface CreateItemDto {
   name: string;
+  name_km?: string;
   category_id: string;
   description?: string;
   price: number;
@@ -117,6 +126,7 @@ export interface CreateItemDto {
 
 export interface UpdateItemDto {
   name?: string;
+  name_km?: string;
   description?: string;
   price?: number;
   image_url?: string;

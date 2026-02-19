@@ -3,17 +3,37 @@ import type { Item } from '../../../services/menu.service';
 
 interface RestaurantItemCardProps {
   item: Item;
+  currentLang: 'en' | 'km';
+  exchangeRate?: number;
+  onClick?: () => void;
 }
 
-export function RestaurantItemCard({ item }: RestaurantItemCardProps) {
+import { getFontClass } from '../../../../../shared/utils/text-utils'; 
+
+export function RestaurantItemCard({ item, currentLang, exchangeRate = 4000, onClick }: RestaurantItemCardProps) {
+  const displayName = currentLang === 'km' && item.name_km ? item.name_km : item.name;
+  const fontClass = getFontClass(displayName, currentLang === 'km' ? 'font-khmer' : 'font-english');
+
+  // Currency Formatting
+  const formatPrice = (price: number) => {
+    if (currentLang === 'km') {
+        const khrPrice = Math.round(price * exchangeRate / 100) * 100; // Round to nearest 100
+        return `${khrPrice.toLocaleString()} ៛`;
+    }
+    return `$${price.toFixed(2)}`;
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+    <div 
+        onClick={onClick}
+        className="bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden hover:shadow-md transition-all cursor-pointer flex flex-col h-full group active:scale-[0.98]"
+    >
       {/* Image Container */}
-      <div className="relative aspect-video w-full bg-stone-100 overflow-hidden">
+      <div className="relative h-48 sm:h-52 w-full bg-stone-100 overflow-hidden">
         {item.image_url ? (
           <img 
             src={item.image_url} 
-            alt={item.name} 
+            alt={displayName} 
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           />
         ) : (
@@ -40,12 +60,14 @@ export function RestaurantItemCard({ item }: RestaurantItemCardProps) {
       {/* Content */}
       <div className="p-4 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-lg text-stone-900 line-clamp-2 leading-tight">{item.name}</h3>
+            <h3 className={`font-bold text-lg text-stone-900 line-clamp-2 leading-tight ${fontClass}`}>
+                {displayName}
+            </h3>
             <span 
-                className="font-bold px-2 py-1 rounded-lg text-sm whitespace-nowrap ml-2 bg-stone-100"
+                className={`font-bold px-2 py-1 rounded-lg text-sm whitespace-nowrap ml-2 bg-stone-100 ${currentLang === 'km' ? 'font-khmer' : ''}`}
                 style={{ color: 'var(--primary)' }}
             >
-                ${item.price.toFixed(2)}
+                {formatPrice(item.price)}
             </span>
         </div>
         

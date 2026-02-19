@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { publicMenuService, type PublicMenuData } from '../services/public-menu.service';
 import { MenuTemplateSelector } from '../components/MenuTemplateSelector';
-import { Search, X } from 'lucide-react'; 
+import { Search, X, Globe } from 'lucide-react'; 
+import { getFontClass } from '../../../shared/utils/text-utils'; 
 
 export default function PublicMenu() {
   const { slug } = useParams<{ slug: string }>();
@@ -11,7 +12,21 @@ export default function PublicMenu() {
   const [error, setError] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState<'en' | 'km'>('en');
+
+  // Set initial language if only Khmer is available (edge case)
+  useEffect(() => {
+    if (data && !data.business.name && data.business.name_km) {
+        setCurrentLang('km');
+    }
+  }, [data]);
+
+  // Toggle Language Handler
+  const toggleLanguage = () => {
+    setCurrentLang(prev => prev === 'en' ? 'km' : 'en');
+  };
   
   // Ref to track if we are currently scrolling automatically (clicking a tab)
   const isScrollingRef = useRef(false);
@@ -160,8 +175,24 @@ export default function PublicMenu() {
     return `https://${url}`;
   };
 
+  // Determine display name and font family based on language
+  const displayName = currentLang === 'km' && business.name_km ? business.name_km : business.name;
+  
+  // Smart Font Detection: Use Khmer font if text is Khmer, otherwise fallback to language setting
+  const fontClass = getFontClass(displayName, currentLang === 'km' ? 'font-khmer' : 'font-english');
+  
+  // Check if we should show the language toggle (if any content has Khmer translation)
+  const hasKhmerContent = Boolean(
+    business.name_km || 
+    categories.some(c => c.name_km || c.items?.some(i => i.name_km))
+  );
+  
+  const showLanguageToggle = hasKhmerContent;
+
+
+
   return (
-    <div className="light min-h-screen bg-white pb-20 text-stone-900">
+    <div className={`light min-h-screen bg-white pb-20 text-stone-900 ${fontClass}`}>
       {/* Top Navigation / Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 transition-all duration-300 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -193,15 +224,24 @@ export default function PublicMenu() {
                     <>
                         <div className="flex items-center gap-3 overflow-hidden flex-1">
                             {/* Logo */}
-                            {business.logo_url ? (
-                                <img src={business.logo_url} alt={business.name} className="h-10 w-10 rounded-full object-cover shadow-sm flex-shrink-0" />
-                            ) : (
-                                <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xl flex-shrink-0">
-                                    {business.name.charAt(0)}
-                                </div>
+                            {business.logo_url && (
+                                <img src={business.logo_url} alt={displayName} className="h-10 w-10 rounded-full object-cover shadow-sm flex-shrink-0" />
                             )}
-                            <h1 className="text-xl font-bold text-gray-900 truncate">{business.name}</h1>
+                            <h1 className={`text-xl font-bold text-gray-900 truncate ${fontClass}`}>{displayName}</h1>
                         </div>
+
+                        {/* Language Toggle (if applicable) */}
+                        {showLanguageToggle && (
+                            <button
+                                onClick={toggleLanguage}
+                                className="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-full transition-all flex items-center gap-1"
+                            >
+                                <Globe size={20} strokeWidth={2} />
+                                <span className={`text-sm font-bold ${currentLang === 'km' ? 'font-khmer' : 'font-english'}`}>
+                                    {currentLang === 'en' ? 'EN' : 'KM'}
+                                </span>
+                            </button>
+                        )}
 
                         {/* Search Icon */}
                         <button 
@@ -235,9 +275,9 @@ export default function PublicMenu() {
                                 activeCategory === cat.id 
                                 ? 'bg-stone-900 text-white shadow-md transform scale-105' 
                                 : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                            }`}
+                            } ${currentLang === 'km' && cat.name_km ? 'font-khmer' : 'font-english'}`}
                         >
-                            {cat.name}
+                            {currentLang === 'km' && cat.name_km ? cat.name_km : cat.name}
                         </button>
                     ))}
                 </div>
@@ -246,31 +286,19 @@ export default function PublicMenu() {
       </header>
 
       {/* Hero / Banner Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {business.cover_image_url ? (
+      {business.cover_image_url ? (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="w-full rounded-2xl overflow-hidden bg-stone-100 shadow-sm relative h-48 sm:h-64 md:h-80">
-                 <img 
+                    <img 
                     src={business.cover_image_url} 
                     alt={business.name} 
                     className="w-full h-full object-cover"
                 />
             </div>
-        ) : (
-            <div className="relative rounded-2xl overflow-hidden bg-stone-900 h-48 sm:h-64 flex items-center justify-center text-center">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-900 to-stone-900 opacity-90"></div>
-                <div className="relative z-10 px-6 max-w-2xl">
-                    <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">
-                        {business.name}
-                    </h2>
-                    {business.description && (
-                        <p className="text-orange-100 text-lg sm:text-lg opacity-90">
-                            {business.description}
-                        </p>
-                    )}
-                </div>
-            </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="pt-8 sm:pt-10"></div>
+      )}
 
       {/* Dynamic Menu Template */}
       <MenuTemplateSelector 
@@ -285,7 +313,8 @@ export default function PublicMenu() {
                            item.description?.toLowerCase().includes(searchQuery.toLowerCase());
                 })
             })).filter(cat => cat.items && cat.items.length > 0)
-        }} 
+        }}
+        currentLang={currentLang}
       />
       
       {/* Footer */}

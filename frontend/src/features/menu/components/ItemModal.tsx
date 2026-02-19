@@ -173,17 +173,32 @@ export default function ItemModal({
                     {/* Basic Info Section */}
                     <div className="space-y-4">
                         {/* Row 1: Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Item Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                required
-                                value={formData.name || ''}
-                                onChange={handleChange}
-                                placeholder="e.g. Truffle Burger"
-                                className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm"
-                            />
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Item Name (Primary)</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    required
+                                    value={formData.name || ''}
+                                    onChange={handleChange}
+                                    placeholder="e.g. Truffle Burger"
+                                    className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm font-english"
+                                    maxLength={100}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Item Name (Khmer - Optional)</label>
+                                <input
+                                    type="text"
+                                    name="name_km"
+                                    value={formData.name_km || ''}
+                                    onChange={handleChange}
+                                    placeholder="e.g. ប៊ឺហ្គឺត្រប់"
+                                    className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm font-khmer"
+                                    maxLength={100}
+                                />
+                            </div>
                         </div>
 
                         {/* Row 2: Price & Category */}
@@ -203,6 +218,7 @@ export default function ItemModal({
                                         value={formData.price || ''}
                                         onChange={handleChange}
                                         placeholder="0.00"
+                                        max="1000000"
                                         className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 pl-7 pr-3 text-sm"
                                     />
                                 </div>
@@ -232,6 +248,7 @@ export default function ItemModal({
                                 onChange={handleChange}
                                 placeholder="Describe the ingredients and flavor profile..."
                                 className="w-full rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2.5 px-3 text-sm resize-none"
+                                maxLength={1000}
                             />
                         </div>
                     </div>

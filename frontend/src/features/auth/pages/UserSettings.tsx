@@ -231,6 +231,7 @@ export default function UserSettings() {
                       onChange={handleChange}
                       className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                       placeholder="Your Name"
+                      maxLength={100}
                     />
                   </div>
 
@@ -286,6 +287,7 @@ export default function UserSettings() {
                         onChange={handlePasswordChange}
                         className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                         placeholder="Current Password"
+                        maxLength={128}
                       />
                       <p className="mt-1 text-xs text-stone-400">
                         Required to change your password.
@@ -306,6 +308,7 @@ export default function UserSettings() {
                       placeholder={
                         hasPassword ? "New Password" : "Create a password"
                       }
+                      maxLength={128}
                     />
                   </div>
 
@@ -320,6 +323,7 @@ export default function UserSettings() {
                       onChange={handlePasswordChange}
                       className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                       placeholder="••••••••"
+                      maxLength={128}
                     />
                   </div>
 

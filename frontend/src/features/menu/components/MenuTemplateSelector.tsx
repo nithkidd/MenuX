@@ -4,9 +4,10 @@ import { DefaultListTemplate } from '../templates/default/DefaultListTemplate';
 
 interface MenuTemplateSelectorProps {
   data: PublicMenuData;
+  currentLang: 'en' | 'km';
 }
 
-export function MenuTemplateSelector({ data }: MenuTemplateSelectorProps) {
+export function MenuTemplateSelector({ data, currentLang }: MenuTemplateSelectorProps) {
   const { business } = data;
 
   // Template Selection Logic
@@ -15,7 +16,7 @@ export function MenuTemplateSelector({ data }: MenuTemplateSelectorProps) {
 
   switch (businessType) {
     case 'restaurant':
-        return <RestaurantGridTemplate data={data} />;
+        return <RestaurantGridTemplate data={data} currentLang={currentLang} />;
     
     // Future example:
     // case 'gaming_gear':

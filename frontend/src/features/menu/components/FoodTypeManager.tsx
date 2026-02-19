@@ -177,6 +177,7 @@ export function FoodTypeManager({ businessId, selectedTypeIds, onToggleType }: F
                     className="flex-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-white text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2"
                     autoFocus
                     disabled={isSubmitting}
+                    maxLength={30}
                 />
                 
                 <div className="flex gap-2 w-full sm:w-auto">

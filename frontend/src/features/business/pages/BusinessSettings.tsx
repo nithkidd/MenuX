@@ -1,24 +1,51 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { businessService, type Business } from '../services/business.service';
-import { Loader2, Globe, Facebook, Instagram, Twitter, MapPin, Phone, Mail, DollarSign, Palette, Layout, Check, X, AlertCircle } from 'lucide-react';
+import { Loader2, Globe, Facebook, Instagram, Twitter, MapPin, Phone, Mail, DollarSign, Palette, Layout, Check, X, AlertCircle, AlertTriangle } from 'lucide-react';
 import { ImageUpload } from '../../../shared/components/ImageUpload';
 import { menuService } from '../../menu/services/menu.service';
 import { useToast } from '../../../shared/contexts/ToastContext';
+import Portal from '../../../shared/components/Portal';
 
 export default function BusinessSettings() {
   const { businessId } = useParams<{ businessId: string }>();
-  // navigate removed as unused
+  const navigate = useNavigate();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'appearance'>('general');
+
+  // Delete Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmationName, setDeleteConfirmationName] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState<Partial<Business>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { showToast } = useToast();
   
+  // Handle Image Upload Helper
+  const handleImageUpload = (field: keyof Business, url: string) => {
+    setFormData(prev => ({ ...prev, [field]: url }));
+  };
+
+  // Handle Image Remove Helper
+  const handleImageRemove = async (field: keyof Business) => {
+    const url = formData[field];
+    if (typeof url === 'string') {
+        const publicId = menuService.getPublicIdFromUrl(url);
+        if (publicId) {
+            try {
+                await menuService.deleteImage(publicId);
+            } catch (err) {
+                console.error("Failed to delete image", err);
+            }
+        }
+    }
+    setFormData(prev => ({ ...prev, [field]: null }));
+  };
+
   // Check for changes (simple deep compare)
   const hasChanges = JSON.stringify(business) !== JSON.stringify(formData);
 
@@ -121,6 +148,21 @@ export default function BusinessSettings() {
     }
   };
 
+  const handleDeleteBusiness = async () => {
+    if (!businessId || deleteConfirmationName !== business?.name) return;
+
+    try {
+      setIsDeleting(true);
+      await businessService.delete(businessId);
+      showToast("Business deleted successfully");
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Failed to delete business", error);
+      showToast("Failed to delete business", "error");
+      setIsDeleting(false);
+    }
+  };
+
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-orange-500" /></div>;
   if (!business) return <div className="p-8 text-center text-red-500">Business not found.</div>;
 
@@ -168,14 +210,47 @@ export default function BusinessSettings() {
                     <div className="space-y-6 animate-fade-in-up">
                         <div className="grid grid-cols-1 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Business Name</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Business Name (Primary)</label>
                                 <input
                                     type="text"
                                     name="name"
                                     value={formData.name || ''}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                    maxLength={100}
+                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500 font-english"
+                                    placeholder="e.g. My Awesome Cafe"
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Business Name (Khmer - Optional)</label>
+                                <input
+                                    type="text"
+                                    name="name_km"
+                                    value={formData.name_km || ''}
+                                    onChange={handleChange}
+                                    maxLength={100}
+                                    className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500 font-khmer"
+                                    placeholder="e.g. ហាងកាហ្វេរបស់ខ្ញុំ"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Exchange Rate (1 USD = ? KHR)</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        name="exchange_rate_khr"
+                                        value={formData.exchange_rate_khr || 4000}
+                                        onChange={handleChange}
+                                        min="100"
+                                        step="100"
+                                        className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        placeholder="4000"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 text-sm">៛</span>
+                                </div>
+                                <p className="mt-1 text-xs text-stone-500">Used for automatic currency conversion in Khmer mode.</p>
                             </div>
 
                             <div className="p-4 bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-100 dark:border-stone-800">
@@ -190,6 +265,7 @@ export default function BusinessSettings() {
                                         onChange={handleChange}
                                         className={`w-full px-4 py-2 rounded-xl border ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-stone-200 dark:border-stone-700'} dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500`}
                                         placeholder="Enter business name"
+                                        maxLength={100}
                                     />
                                     {errors.name && (
                                         <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
@@ -212,6 +288,7 @@ export default function BusinessSettings() {
                                                 setFormData(prev => ({ ...prev, slug: val }));
                                             }}
                                             className={`flex-1 px-4 py-2 rounded-xl border ${errors.slug ? 'border-red-500 focus:ring-red-500' : 'border-stone-200 dark:border-stone-700'} dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500 font-mono text-sm`}
+                                            maxLength={100}
                                         />
                                     </div>
                                     {errors.slug && (
@@ -246,8 +323,6 @@ export default function BusinessSettings() {
                                 </div>
                             </div>
                             
-                            {/* Description - this was the next block */}
-                            
                             <div>
                                 <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Description</label>
                                 <textarea
@@ -257,6 +332,7 @@ export default function BusinessSettings() {
                                     onChange={handleChange}
                                     className="w-full px-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                     placeholder="Tell customers about your business..."
+                                    maxLength={1000}
                                 />
                             </div>
 
@@ -273,8 +349,32 @@ export default function BusinessSettings() {
                                         onChange={handleChange}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="USD, EUR, etc."
+                                        maxLength={10}
                                     />
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Danger Zone */}
+                        <div className="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800">
+                             <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10 p-6">
+                                <h3 className="text-lg font-bold text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
+                                    <AlertTriangle size={20} />
+                                    Danger Zone
+                                </h3>
+                                <p className="text-sm text-red-600 dark:text-red-300 mb-6">
+                                    Deleting your business is irreversible. All menus, items, statistics, and settings will be permanently removed.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDeleteConfirmationName('');
+                                        setIsDeleteModalOpen(true);
+                                    }}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-sm active:scale-95"
+                                >
+                                    Delete Business
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -297,6 +397,7 @@ export default function BusinessSettings() {
                                         value={formData.contact_email || ''}
                                         onChange={handleChange}
                                         className={`pl-9 w-full pr-4 py-2 rounded-xl border ${errors.contact_email ? 'border-red-500 focus:ring-red-500' : 'border-stone-200 dark:border-stone-700'} dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500`}
+                                        maxLength={255}
                                     />
                                     {errors.contact_email && (
                                         <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
@@ -317,6 +418,7 @@ export default function BusinessSettings() {
                                         value={formData.contact_phone || ''}
                                         onChange={handleChange}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        maxLength={20}
                                     />
                                 </div>
                             </div>
@@ -332,6 +434,7 @@ export default function BusinessSettings() {
                                         value={formData.address || ''}
                                         onChange={handleChange}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        maxLength={255}
                                     />
                                 </div>
                             </div>
@@ -348,6 +451,7 @@ export default function BusinessSettings() {
                                         onChange={handleChange}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="https://..."
+                                        maxLength={2048}
                                     />
                                 </div>
                             </div>
@@ -367,6 +471,7 @@ export default function BusinessSettings() {
                                         onChange={(e) => handleSocialChange('facebook', e.target.value)}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Page URL or Username"
+                                        maxLength={255}
                                     />
                                 </div>
                             </div>
@@ -382,6 +487,7 @@ export default function BusinessSettings() {
                                         onChange={(e) => handleSocialChange('instagram', e.target.value)}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Username"
+                                        maxLength={255}
                                     />
                                 </div>
                             </div>
@@ -397,6 +503,7 @@ export default function BusinessSettings() {
                                         onChange={(e) => handleSocialChange('twitter', e.target.value)}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Username"
+                                        maxLength={255}
                                     />
                                 </div>
                             </div>
@@ -428,20 +535,15 @@ export default function BusinessSettings() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Cover Image URL</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">Cover Image URL</label>
                                 <div className="w-full">
                                     <ImageUpload
                                         initialUrl={formData.cover_image_url}
-                                        onUpload={(url) => setFormData(prev => ({ ...prev, cover_image_url: url }))}
-                                        onRemove={async () => {
-                                            if (formData.cover_image_url) {
-                                                const publicId = menuService.getPublicIdFromUrl(formData.cover_image_url);
-                                                if (publicId) await menuService.deleteImage(publicId);
-                                                setFormData(prev => ({ ...prev, cover_image_url: null }));
-                                            }
-                                        }}
+                                        onUpload={(url) => handleImageUpload('cover_image_url', url)}
+                                        onRemove={() => handleImageRemove('cover_image_url')} 
+                                        className="h-48 w-full rounded-lg"
                                         aspectRatio={16/9}
-                                        className="w-full h-48 sm:h-64 rounded-xl overflow-hidden"
+                                        layout="col"
                                     />
                                 </div>
                             </div>
@@ -502,6 +604,63 @@ export default function BusinessSettings() {
             </form>
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <Portal>
+             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                 <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl max-w-md w-full p-6 border border-stone-200 dark:border-stone-800 animate-scale-up">
+                    <div className="flex items-center gap-3 mb-4 text-red-600 dark:text-red-500">
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-full">
+                            <AlertTriangle size={24} />
+                        </div>
+                        <h3 className="text-xl font-bold text-stone-900 dark:text-white">Delete Business?</h3>
+                    </div>
+                    
+                    <p className="text-stone-600 dark:text-stone-300 mb-4 text-sm leading-relaxed">
+                        This action cannot be undone. You are about to permanently delete <strong>{business?.name}</strong> and all associated data.
+                    </p>
+                    
+                    <div className="mb-6">
+                        <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 tracking-wider mb-2">
+                            Type "{business?.name}" to confirm
+                        </label>
+                        <input
+                            type="text"
+                            value={deleteConfirmationName}
+                            onChange={(e) => setDeleteConfirmationName(e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all font-medium"
+                            placeholder={business?.name}
+                            autoFocus
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                        <button 
+                            onClick={() => setIsDeleteModalOpen(false)}
+                            className="px-4 py-2 font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl transition-colors btn-press"
+                            disabled={isDeleting}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleDeleteBusiness} 
+                            disabled={deleteConfirmationName !== business?.name || isDeleting}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 btn-press"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                'Delete Forever'
+                            )}
+                        </button>
+                    </div>
+                 </div>
+             </div>
+        </Portal>
+      )}
     </div>
   );
 }
