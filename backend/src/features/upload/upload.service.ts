@@ -1,5 +1,10 @@
 import cloudinary from "../../config/cloudinary.js";
 import { Readable } from "stream";
+import {
+  optimizeLogo,
+  optimizeMenuItem,
+  compressImage,
+} from "../../shared/utils/image-compression.js";
 
 export interface UploadResult {
   url: string;
@@ -7,9 +12,70 @@ export interface UploadResult {
   format: string;
   width: number;
   height: number;
+  compressionRatio?: number;
+  originalSize?: number;
+  compressedSize?: number;
 }
 
 export class UploadService {
+  /**
+   * Upload a logo with optimal compression
+   * - Resizes to max 800x800px
+   * - Quality: 90%
+   * - Format: WebP
+   */
+  async uploadLogo(
+    fileBuffer: Buffer,
+    fileName: string,
+    userId: string,
+  ): Promise<UploadResult> {
+    console.log("🖼️  Compressing logo...");
+    const compressed = await optimizeLogo(fileBuffer);
+    const generatedFileName = this.generateFileName(userId, fileName);
+
+    const result = await this.uploadFile(
+      "logos",
+      compressed.buffer,
+      generatedFileName,
+    );
+
+    return {
+      ...result,
+      compressionRatio: compressed.compressionRatio,
+      originalSize: compressed.originalSize,
+      compressedSize: compressed.compressedSize,
+    };
+  }
+
+  /**
+   * Upload a menu item image with optimal compression
+   * - Resizes to max 1200x1200px
+   * - Quality: 85%
+   * - Format: WebP
+   */
+  async uploadMenuItemImage(
+    fileBuffer: Buffer,
+    fileName: string,
+    userId: string,
+  ): Promise<UploadResult> {
+    console.log("🖼️  Compressing menu item image...");
+    const compressed = await optimizeMenuItem(fileBuffer);
+    const generatedFileName = this.generateFileName(userId, fileName);
+
+    const result = await this.uploadFile(
+      "menu-images",
+      compressed.buffer,
+      generatedFileName,
+    );
+
+    return {
+      ...result,
+      compressionRatio: compressed.compressionRatio,
+      originalSize: compressed.originalSize,
+      compressedSize: compressed.compressedSize,
+    };
+  }
+
   /**
    * Upload a file to Cloudinary using upload_stream
    * Incorporates safety and performance optimizations:
