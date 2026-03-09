@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { businessService, type Business } from '../services/business.service';
-import { Loader2, Globe, Facebook, Instagram, Twitter, MapPin, Phone, Mail, DollarSign, Palette, Layout, Check, X, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, Globe, MapPin, Phone, Mail, DollarSign, Palette, Layout, Check, X, AlertCircle, AlertTriangle } from 'lucide-react';
 import { ImageUpload } from '../../../shared/components/ImageUpload';
 import { menuService } from '../../menu/services/menu.service';
 import { useToast } from '../../../shared/contexts/ToastContext';
 import Portal from '../../../shared/components/Portal';
+import { FacebookIcon, InstagramIcon, TelegramIcon, TikTokIcon } from '../../../shared/components/BrandIcons';
 
 export default function BusinessSettings() {
   const { businessId } = useParams<{ businessId: string }>();
@@ -463,7 +464,7 @@ export default function BusinessSettings() {
                                 <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Facebook</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Facebook size={16} className="text-stone-400" />
+                                        <FacebookIcon size={16} className="opacity-70 grayscale" />
                                     </div>
                                     <input
                                         type="text"
@@ -479,7 +480,7 @@ export default function BusinessSettings() {
                                 <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Instagram</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Instagram size={16} className="text-stone-400" />
+                                        <InstagramIcon size={16} className="opacity-70 grayscale" />
                                     </div>
                                     <input
                                         type="text"
@@ -492,15 +493,31 @@ export default function BusinessSettings() {
                                 </div>
                             </div>
                              <div>
-                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Twitter / X</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Telegram</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Twitter size={16} className="text-stone-400" />
+                                        <TelegramIcon size={16} className="opacity-70 grayscale" />
                                     </div>
                                     <input
                                         type="text"
-                                        value={formData.social_links?.twitter || ''}
-                                        onChange={(e) => handleSocialChange('twitter', e.target.value)}
+                                        value={formData.social_links?.telegram || ''}
+                                        onChange={(e) => handleSocialChange('telegram', e.target.value)}
+                                        className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                                        placeholder="Username"
+                                        maxLength={255}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">TikTok</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <TikTokIcon size={16} className="opacity-70 grayscale" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={formData.social_links?.tiktok || ''}
+                                        onChange={(e) => handleSocialChange('tiktok', e.target.value)}
                                         className="pl-9 w-full pr-4 py-2 rounded-xl border-stone-200 dark:border-stone-700 dark:bg-stone-950 dark:text-white focus:ring-orange-500 focus:border-orange-500"
                                         placeholder="Username"
                                         maxLength={255}

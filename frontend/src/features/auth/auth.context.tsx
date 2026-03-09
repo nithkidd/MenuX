@@ -9,6 +9,8 @@ export interface User {
   avatar_url?: string | null;
   role: Role;
   identities?: any[];
+  onboarding_completed?: boolean;
+  tours_completed?: string[];
 }
 
 interface AuthContextType {

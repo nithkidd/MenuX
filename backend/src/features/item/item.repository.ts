@@ -9,7 +9,13 @@ export class ItemRepository {
     name: string;
     description?: string;
     price: number;
+    original_price?: number;
     image_url?: string;
+    image_urls?: string[];
+    sku?: string;
+    is_hot?: boolean;
+    map_url?: string;
+    social_links?: Record<string, string>;
     sort_order: number;
   }): Promise<Item | null> {
     const { data: item, error } = await supabaseAdmin
@@ -19,7 +25,13 @@ export class ItemRepository {
         name: data.name,
         description: data.description || null,
         price: data.price,
+        original_price: data.original_price || null,
         image_url: data.image_url || null,
+        image_urls: data.image_urls || [],
+        sku: data.sku || null,
+        is_hot: data.is_hot || false,
+        map_url: data.map_url || null,
+        social_links: data.social_links || {},
         sort_order: data.sort_order,
       })
       .select()

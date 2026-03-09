@@ -40,7 +40,11 @@ export class ItemService {
       name: dto.name,
       description: dto.description,
       price: dto.price,
+      original_price: dto.original_price,
       image_url: dto.image_url,
+      image_urls: dto.image_urls,
+      sku: dto.sku,
+      is_hot: dto.is_hot,
       sort_order: maxOrder + 1,
     });
   }
@@ -103,7 +107,11 @@ export class ItemService {
       name: dto.name,
       description: dto.description,
       price: dto.price,
+      original_price: dto.original_price,
       image_url: dto.image_url,
+      image_urls: dto.image_urls,
+      sku: dto.sku,
+      is_hot: dto.is_hot,
       sort_order: maxOrder + 1,
     });
   }

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./features/auth/auth.context";
 import { ThemeProvider } from "./shared/contexts/ThemeContext";
 import { ToastProvider } from "./shared/contexts/ToastContext";
+import { TourProvider } from "./shared/contexts/tour.context";
 import { usePermissions } from "./shared/hooks/usePermissions";
 
 // Lazy load all route components for code splitting
@@ -181,11 +182,13 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-          <ToastProvider>
-            <AppRoutes />
-          </ToastProvider>
-        </ThemeProvider>
+        <TourProvider>
+          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
+          </ThemeProvider>
+        </TourProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -75,7 +75,13 @@ export interface ApiResponse<T = unknown> {
 export interface PublicMenu {
   business: Pick<
     Business,
-    "name" | "slug" | "logo_url" | "description" | "business_type" | "is_published" | "name_km"
+    | "name"
+    | "slug"
+    | "logo_url"
+    | "description"
+    | "business_type"
+    | "is_published"
+    | "name_km"
   >;
   categories: (Category & { items: Item[] })[];
 }
@@ -97,6 +103,16 @@ export interface UpdateBusinessDto {
   logo_url?: string;
   is_active?: boolean;
   is_published?: boolean;
+  exchange_rate_khr?: number;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
+  website_url?: string;
+  social_links?: Record<string, string>;
+  opening_hours?: Record<string, any>;
+  primary_color?: string;
+  cover_image_url?: string;
+  currency?: string;
 }
 
 export interface CreateCategoryDto {

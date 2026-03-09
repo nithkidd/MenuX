@@ -27,16 +27,25 @@ export const getMe = async (req: Request, res: Response) => {
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const { profileId } = req as AuthRequest;
-    const { full_name, avatar_url } = req.body;
+    const { full_name, avatar_url, tours_completed, onboarding_completed } =
+      req.body;
+
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (full_name !== undefined) updateData.full_name = full_name;
+    if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
+    if (tours_completed !== undefined)
+      updateData.tours_completed = tours_completed;
+    if (onboarding_completed !== undefined)
+      updateData.onboarding_completed = onboarding_completed;
 
     const { data: updatedProfile, error } = await supabaseAdmin
       .from("profiles")
-      .update({
-        full_name,
-        ...(avatar_url !== undefined && { avatar_url }),
-      })
+      .update(updateData)
       .eq("id", profileId)
-      .select("id, auth_user_id, email, full_name, avatar_url, role")
+      .select(
+        "id, auth_user_id, email, full_name, avatar_url, role, tours_completed, onboarding_completed",
+      )
       .single();
 
     if (error) {
@@ -85,12 +94,10 @@ export const unlinkProvider = async (req: Request, res: Response) => {
 
     // Check if we have more than 1 identity (safety check)
     if (identities.length <= 1) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "Cannot unlink the only login method.",
-        });
+      return res.status(400).json({
+        success: false,
+        error: "Cannot unlink the only login method.",
+      });
     }
 
     const identityToRemove = identities.find((id) => id.provider === provider);

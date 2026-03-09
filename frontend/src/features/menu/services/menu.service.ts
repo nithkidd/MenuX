@@ -8,7 +8,13 @@ export interface Item {
   name_km?: string;
   description: string | null;
   price: number;
+  original_price?: number;
   image_url: string | null;
+  image_urls?: string[];
+  sku?: string;
+  is_hot?: boolean;
+  map_url?: string;
+  social_links?: Record<string, string>;
   is_available: boolean;
   is_vegetarian: boolean;
   is_spicy: boolean;

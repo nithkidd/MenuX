@@ -1,9 +1,10 @@
-import { supabaseAdmin } from '../../config/supabase.js';
-import { Category, Item } from '../../shared/types/index.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { Category, Item } from "../../shared/types/index.js";
 
 interface PublicBusiness {
   id: string;
   name: string;
+  name_km: string | null;
   slug: string;
   logo_url: string | null;
   description: string | null;
@@ -18,29 +19,39 @@ interface PublicBusiness {
   primary_color: string | null;
   cover_image_url: string | null;
   currency: string;
+  exchange_rate_khr: number | null;
 }
 
 export class MenuRepository {
   async getBusinessBySlug(slug: string): Promise<PublicBusiness | null> {
     const { data, error } = await supabaseAdmin
-      .from('businesses')
-      .select('id, name, slug, logo_url, description, business_type, contact_email, contact_phone, address, website_url, social_links, opening_hours, primary_color, cover_image_url, currency')
-      .eq('slug', slug)
-      .eq('is_active', true)
-      .eq('is_published', true)
+      .from("businesses")
+      .select(
+        "id, name, name_km, slug, logo_url, description, business_type, contact_email, contact_phone, address, website_url, social_links, opening_hours, primary_color, cover_image_url, currency, exchange_rate_khr",
+      )
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .eq("is_published", true)
       .single();
+
+    console.log("🔍 [Backend] Fetched business by slug:", slug);
+    console.log("🔍 [Backend] Data:", data);
+    console.log("🔍 [Backend] name_km value:", data?.name_km);
+    console.log("🔍 [Backend] Error:", error);
 
     if (error) return null;
     return data as PublicBusiness;
   }
 
-  async getCategoriesWithItems(businessId: string): Promise<(Category & { items: Item[] })[]> {
+  async getCategoriesWithItems(
+    businessId: string,
+  ): Promise<(Category & { items: Item[] })[]> {
     // 1. Fetch all categories for the business
     const { data: categories, error: catError } = await supabaseAdmin
-      .from('categories')
-      .select('*')
-      .eq('business_id', businessId)
-      .order('sort_order', { ascending: true });
+      .from("categories")
+      .select("*")
+      .eq("business_id", businessId)
+      .order("sort_order", { ascending: true });
 
     if (catError || !categories || categories.length === 0) return [];
 
@@ -49,14 +60,14 @@ export class MenuRepository {
 
     // 3. Fetch all items for these categories in ONE query
     const { data: items, error: itemError } = await supabaseAdmin
-      .from('items')
-      .select('*')
-      .in('category_id', categoryIds)
-      .eq('is_available', true)
-      .order('sort_order', { ascending: true });
+      .from("items")
+      .select("*")
+      .in("category_id", categoryIds)
+      .eq("is_available", true)
+      .order("sort_order", { ascending: true });
 
     if (itemError) {
-      console.error('Error fetching items:', itemError);
+      console.error("Error fetching items:", itemError);
       return [];
     }
 

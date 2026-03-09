@@ -46,14 +46,18 @@ export const verifyAuth = async (
     // Use admin client for database operations (bypasses RLS)
     let { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("id, auth_user_id, email, full_name, avatar_url, role")
+      .select(
+        "id, auth_user_id, email, full_name, avatar_url, role, tours_completed, onboarding_completed",
+      )
       .eq("auth_user_id", authUser.id)
       .maybeSingle();
 
     if (!profile && authUser.email) {
       const { data: legacyProfile } = await supabaseAdmin
         .from("profiles")
-        .select("id, auth_user_id, email, full_name, avatar_url, role")
+        .select(
+          "id, auth_user_id, email, full_name, avatar_url, role, tours_completed, onboarding_completed",
+        )
         .eq("email", authUser.email)
         .is("auth_user_id", null)
         .maybeSingle();
@@ -63,7 +67,9 @@ export const verifyAuth = async (
           .from("profiles")
           .update({ auth_user_id: authUser.id })
           .eq("id", legacyProfile.id)
-          .select("id, auth_user_id, email, full_name, avatar_url, role")
+          .select(
+            "id, auth_user_id, email, full_name, avatar_url, role, tours_completed, onboarding_completed",
+          )
           .single();
 
         profile = updatedProfile;
@@ -91,7 +97,9 @@ export const verifyAuth = async (
           full_name: metaName,
           avatar_url: metaAvatar,
         })
-        .select("id, auth_user_id, email, full_name, avatar_url, role")
+        .select(
+          "id, auth_user_id, email, full_name, avatar_url, role, tours_completed, onboarding_completed",
+        )
         .single();
 
       if (createError || !createdProfile) {

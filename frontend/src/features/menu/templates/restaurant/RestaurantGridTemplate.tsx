@@ -74,6 +74,7 @@ export function RestaurantGridTemplate({ data, currentLang }: RestaurantGridTemp
             onClose={handleCloseModal}
             currentLang={currentLang}
             exchangeRate={data.business.exchange_rate_khr}
+            business={data.business}
         />
     </div>
   );
