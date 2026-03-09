@@ -57,6 +57,12 @@ export interface Item {
   description: string | null;
   price: number;
   image_url: string | null;
+  image_urls?: string[];
+  original_price?: number;
+  sku?: string;
+  is_hot?: boolean;
+  map_url?: string;
+  social_links?: Record<string, string>;
   is_available: boolean;
   sort_order: number;
   created_at: string;
@@ -138,6 +144,12 @@ export interface CreateItemDto {
   description?: string;
   price: number;
   image_url?: string;
+  image_urls?: string[];
+  original_price?: number;
+  sku?: string;
+  is_hot?: boolean;
+  map_url?: string;
+  social_links?: Record<string, string>;
 }
 
 export interface UpdateItemDto {
@@ -146,5 +158,11 @@ export interface UpdateItemDto {
   description?: string;
   price?: number;
   image_url?: string;
+  image_urls?: string[];
+  original_price?: number;
+  sku?: string;
+  is_hot?: boolean;
+  map_url?: string;
+  social_links?: Record<string, string>;
   is_available?: boolean;
 }
